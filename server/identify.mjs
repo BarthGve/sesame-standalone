@@ -1,4 +1,5 @@
 import { extractObjet } from "./objetjson.mjs";
+import { requireWorkflow } from "./config.mjs";
 
 const defaultSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -13,6 +14,7 @@ const defaultSleep = (ms) => new Promise((r) => setTimeout(r, ms));
  * @param {object} p.cfg          config IAka (voir proxy.mjs)
  */
 export async function runIdentify({ imageBase64, mime, filename, cfg, fetchImpl = globalThis.fetch, sleep = defaultSleep }) {
+  requireWorkflow(cfg, cfg.identifyAppId);
   const auth = { Authorization: `Bearer ${cfg.jwt}` };
   const execPath = cfg.executePath || "/workflows/execute";
   const statusTpl = cfg.statusPath || "/workflows/executions/{id}";

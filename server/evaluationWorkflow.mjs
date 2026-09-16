@@ -5,6 +5,8 @@
 // qui ne serait pas exploitable — mieux vaut une erreur franche qu'un PV
 // construit sur une réponse à moitié comprise.
 
+import { requireWorkflow } from "./config.mjs";
+
 const defaultSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Erreurs de contrat exposées par ce module : elles doivent atteindre
@@ -14,6 +16,8 @@ const ERREURS_CONTRAT = new Set([
   "EVALUATION_UPSTREAM",
   "EVALUATION_TIMEOUT",
   "OBJETS_REQUIS",
+  "IAKA_UNAVAILABLE",
+  "WORKFLOW_NON_CONFIGURE",
 ]);
 
 /**
@@ -111,6 +115,7 @@ export async function runEvaluation({
   fetchImpl = globalThis.fetch,
   sleep = defaultSleep,
 }) {
+  requireWorkflow(cfg, cfg.evaluationAppId);
   if (!Array.isArray(objetIds) || objetIds.length === 0) throw new Error("OBJETS_REQUIS");
 
   const auth = { Authorization: `Bearer ${cfg.jwt}`, "Content-Type": "application/json" };

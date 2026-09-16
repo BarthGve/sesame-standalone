@@ -1,4 +1,6 @@
 import { createServer } from "node:http";
+import { join, normalize, resolve, relative, isAbsolute } from "node:path";
+import { readFile } from "node:fs/promises";
 import { runWorkflow, runWorkflowRaw, runRensWorkflow } from "./iaka.mjs";
 import { runIdentify } from "./identify.mjs";
 import { runSynthese } from "./synthese.mjs";
@@ -700,24 +702,22 @@ export function createHandler({ cfg, run = runWorkflow, runRaw = runWorkflowRaw,
 
     // --- Front statique (dist/) : tout ce qui n'est pas /api ---
     if (req.method === "GET" && cfg.staticDir && !url.pathname.startsWith("/api/")) {
-      const { readFile } = await import("node:fs/promises");
-      const { join, normalize } = await import("node:path");
-      const rel = normalize(url.pathname).replace(/^(\.\.[/\\])+/, "");
-      const candidate = join(cfg.staticDir, rel);
-      const filePath = candidate.endsWith("/") ? join(candidate, "index.html") : candidate;
-      try {
-        const data = await readFile(filePath);
-        res.writeHead(200, { "Content-Type": contentTypeFor(filePath) });
-        res.end(data);
-        return;
-      } catch {
-        // Fallback SPA : sert index.html pour les routes client (react-router).
+      const filePath = confinedStaticPath(cfg.staticDir, url.pathname);
+      if (filePath) {
         try {
-          const html = await readFile(join(cfg.staticDir, "index.html"));
-          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-          res.end(html);
+          const data = await readFile(filePath);
+          res.writeHead(200, { "Content-Type": contentTypeFor(filePath) });
+          res.end(data);
           return;
-        } catch { /* pas de dist → 404 plus bas */ }
+        } catch {
+          // Fallback SPA uniquement si le chemin ÉTAIT dans staticDir et le fichier manque.
+          try {
+            const html = await readFile(join(resolve(cfg.staticDir), "index.html"));
+            res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+            res.end(html);
+            return;
+          } catch { /* pas de dist → 404 plus bas */ }
+        }
       }
     }
 
@@ -747,6 +747,18 @@ const STATIC_CONTENT_TYPES = {
 function contentTypeFor(path) {
   const ext = path.slice(path.lastIndexOf(".")).toLowerCase();
   return STATIC_CONTENT_TYPES[ext] || "application/octet-stream";
+}
+
+// Refuse tout chemin qui n'est pas strictement sous staticDir (après resolve).
+// Ne journalise pas le chemin : il peut coller un secret d'URL ou un fichier système.
+export function confinedStaticPath(staticDir, pathname) {
+  const root = resolve(staticDir);
+  const relReq = normalize(String(pathname || "")).replace(/^[/\\]+/, "");
+  const candidate = resolve(root, relReq);
+  const rel = relative(root, candidate);
+  if (rel.startsWith("..") || isAbsolute(rel)) return null;
+  if (!pathname || pathname.endsWith("/") || candidate === root) return join(root, "index.html");
+  return candidate;
 }
 
 // Démarrage direct : node --env-file=.env server/proxy.mjs

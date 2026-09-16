@@ -90,4 +90,9 @@ export function iakaReady(cfg) {
   }
 }
 
+export function requireWorkflow(cfg, appId) {
+  iakaReady(cfg);
+  if (!filled(appId)) throw new Error("WORKFLOW_NON_CONFIGURE");
+}
+
 export { APP_IDS };

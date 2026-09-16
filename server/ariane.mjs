@@ -2,6 +2,7 @@
 // Voir docs/superpowers/specs/2026-07-19-ariane-design.md et docs/iaka-ariane-workflow.md.
 
 import { randomUUID } from "node:crypto";
+import { requireWorkflow } from "./config.mjs";
 import { parseNomFichier, cleNoyau, fusionnerMentions, rangRole, normaliserRole, naissancesCompatibles } from "./pieceMeta.mjs";
 import { ragActif, purgeCorpus, ingestPiece } from "./ariane-rag.mjs";
 
@@ -481,6 +482,7 @@ async function pollResult({ executionId, cfg, fetchImpl, sleep, headers, etape =
 
 // MAP : une pièce PDF → extraction (schéma §4.1). La cote est stampée par le BFF.
 export async function runExtraction({ file, cote, cfg, fetchImpl = globalThis.fetch, sleep = defaultSleep }) {
+  requireWorkflow(cfg, cfg.arianeExtractionAppId);
   const auth = { Authorization: `Bearer ${cfg.jwt}` };
   const execPath = cfg.executePath || "/workflows/execute";
   const form = new FormData();
@@ -520,6 +522,7 @@ export async function runExtraction({ file, cote, cfg, fetchImpl = globalThis.fe
 
 // REDUCE : agrégat compact (envoyé en prompt) → parties/relations/synthèse (schéma §4.3).
 export async function runConsolidation({ aggregate, cfg, fetchImpl = globalThis.fetch, sleep = defaultSleep }) {
+  requireWorkflow(cfg, cfg.arianeConsolidationAppId);
   const headers = { Authorization: `Bearer ${cfg.jwt}`, "Content-Type": "application/json" };
   const execPath = cfg.executePath || "/workflows/execute";
   const prompt = JSON.stringify(aggregate);

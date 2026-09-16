@@ -1,3 +1,5 @@
+import { requireWorkflow } from "./config.mjs";
+
 const defaultSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Rubriques du PV dans l'ordre canonique de la trame (cf. prompt de l'agent de rédaction),
@@ -66,6 +68,7 @@ export function extractPv(result) {
  * @param {object} p.cfg  config IAka (voir proxy.mjs)
  */
 export async function runPvtcmp({ files, cfg, fetchImpl = globalThis.fetch, sleep = defaultSleep }) {
+  requireWorkflow(cfg, cfg.pvtcmpAppId);
   const auth = { Authorization: `Bearer ${cfg.jwt}` };
   const execPath = cfg.executePath || "/workflows/execute";
   const statusTpl = cfg.statusPath || "/workflows/executions/{id}";

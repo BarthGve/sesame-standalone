@@ -2,10 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { Readable } from "node:stream";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createHandler } from "./proxy.mjs";
+import { createHandler, confinedStaticPath } from "./proxy.mjs";
 
 const cfg = { pollIntervalMs: 0, pollTimeoutMs: 100 };
 const fc = { type: "FeatureCollection", features: [] };
@@ -657,6 +657,45 @@ test("GET /api/inconnu avec staticDir fourni → toujours 404 (jamais servi comm
   const res = mockRes();
   await h(mockReq("GET", "/api/inconnu"), res);
   assert.equal(res.code, 404);
+});
+
+test("GET hors staticDir (/etc/passwd, /proc/self/environ) ne fuit pas le fichier", async () => {
+  const TMP_DIST = mkdtempSync(join(tmpdir(), "proxy-dist-"));
+  writeFileSync(join(TMP_DIST, "index.html"), "<!doctype html><html><body>spa-ok</body></html>");
+  writeFileSync(join(TMP_DIST, "app.js"), "console.log('asset')");
+  const h = createHandler({ cfg: { staticDir: TMP_DIST } });
+
+  for (const path of ["/etc/passwd", "/proc/self/environ", "/../../etc/passwd"]) {
+    const res = mockRes();
+    await h(mockReq("GET", path), res);
+    const body = String(res.body);
+    if (res.code === 200) {
+      assert.match(body, /spa-ok/, `${path} SPA ok`);
+    } else {
+      assert.equal(res.code, 404, `${path} 404`);
+    }
+    assert.doesNotMatch(body, /^root:/);
+    assert.doesNotMatch(body, /\bPATH=/);
+    if (existsSync("/etc/passwd")) {
+      const passwd = readFileSync("/etc/passwd", "utf8").slice(0, 40);
+      assert.ok(!body.includes(passwd.trim()), `${path} ne renvoie pas /etc/passwd`);
+    }
+  }
+
+  const asset = mockRes();
+  await h(mockReq("GET", "/app.js"), asset);
+  assert.equal(asset.code, 200);
+  assert.equal(String(asset.body), "console.log('asset')");
+});
+
+test("confinedStaticPath refuse une sortie de staticDir", () => {
+  const TMP_DIST = mkdtempSync(join(tmpdir(), "proxy-dist-"));
+  assert.equal(confinedStaticPath(TMP_DIST, "/"), join(TMP_DIST, "index.html"));
+  assert.ok(confinedStaticPath(TMP_DIST, "/app.js").endsWith("app.js"));
+  // join(staticDir, "/etc/passwd") serait /etc/passwd sans confinement.
+  const escaped = confinedStaticPath(TMP_DIST, "/etc/passwd");
+  assert.ok(escaped === null || escaped.startsWith(TMP_DIST));
+  assert.notEqual(escaped, "/etc/passwd");
 });
 
 // --- Ariane RAG : chat SSE et purge du corpus ---

@@ -11,6 +11,10 @@ test("ERROR_STATUS mappe BODY_TOO_LARGE → 413", () => {
   assert.equal(ERROR_STATUS.BODY_TOO_LARGE, 413);
 });
 
+test("ERROR_STATUS mappe WORKFLOW_NON_CONFIGURE → 422", () => {
+  assert.equal(ERROR_STATUS.WORKFLOW_NON_CONFIGURE, 422);
+});
+
 test("readBody rejette BODY_TOO_LARGE au-delà de maxBytes", async () => {
   const chunks = ["aaaa", "bbbb"]; // 8 octets
   const req = {

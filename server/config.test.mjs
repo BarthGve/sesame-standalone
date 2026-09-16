@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { loadCfg, publicConfig, iakaReady } from "./config.mjs";
+import { loadCfg, publicConfig, iakaReady, requireWorkflow } from "./config.mjs";
 
 const base = {
   IAKA_BASE_URL: "http://iaka:8080",
@@ -46,6 +46,14 @@ test("publicConfig : booléens, pas de JWT ni d'UUID", () => {
 test("iakaReady lève IAKA_UNAVAILABLE si URL/JWT/tenant manquent", () => {
   assert.throws(() => iakaReady(loadCfg({})), /IAKA_UNAVAILABLE/);
   assert.doesNotThrow(() => iakaReady(loadCfg(base)));
+});
+
+test("requireWorkflow : IAKA_UNAVAILABLE puis WORKFLOW_NON_CONFIGURE", () => {
+  const ready = loadCfg(base);
+  assert.throws(() => requireWorkflow(loadCfg({}), "app"), /IAKA_UNAVAILABLE/);
+  assert.throws(() => requireWorkflow(ready, ""), /WORKFLOW_NON_CONFIGURE/);
+  assert.throws(() => requireWorkflow(ready, "  "), /WORKFLOW_NON_CONFIGURE/);
+  assert.doesNotThrow(() => requireWorkflow(ready, "app"));
 });
 
 test("app_id vide → workflow false", () => {

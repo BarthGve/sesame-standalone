@@ -1,3 +1,5 @@
+import { requireWorkflow } from "./config.mjs";
+
 const defaultSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Extrait le texte de synthèse du `result` IAka : on retire les blocs
@@ -21,6 +23,7 @@ export function extractTexte(result) {
  * @param {object} p.cfg  config IAka (voir proxy.mjs)
  */
 export async function runSynthese({ files, contexte = null, cfg, fetchImpl = globalThis.fetch, sleep = defaultSleep }) {
+  requireWorkflow(cfg, cfg.syntheseAppId);
   const auth = { Authorization: `Bearer ${cfg.jwt}` };
   const execPath = cfg.executePath || "/workflows/execute";
   const statusTpl = cfg.statusPath || "/workflows/executions/{id}";

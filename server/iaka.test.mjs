@@ -93,6 +93,21 @@ test("cfg sans baseUrl lève IAKA_UNAVAILABLE avant tout fetch", async () => {
   assert.equal(called, 0);
 });
 
+test("app_id vide lève WORKFLOW_NON_CONFIGURE avant tout fetch", async () => {
+  let called = 0;
+  const fetchImpl = async () => { called++; return { ok: true, json: async () => ({}) }; };
+  await assert.rejects(
+    runWorkflow({
+      question: "q",
+      cfg: { baseUrl: "http://iaka.test", jwt: "j", tenantId: "t", appId: "", pollTimeoutMs: 10, pollIntervalMs: 1 },
+      fetchImpl,
+      sleep: noSleep,
+    }),
+    /WORKFLOW_NON_CONFIGURE/,
+  );
+  assert.equal(called, 0);
+});
+
 test("executePath / statusPath custom sont utilisés", async () => {
   const urls = [];
   const cfg = { baseUrl: "http://iaka", jwt: "j", tenantId: "t", appId: "a", executePath: "/v2/run", statusPath: "/v2/jobs/{id}", pollIntervalMs: 0, pollTimeoutMs: 100 };

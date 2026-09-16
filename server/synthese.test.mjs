@@ -98,6 +98,36 @@ test("une panne 500 ne déclenche pas de rejeu", async () => {
   assert.equal(prompts.length, 1);
 });
 
+test("sans IAKA_BASE_URL → IAKA_UNAVAILABLE avant tout fetch", async () => {
+  let called = 0;
+  const fetchImpl = async () => { called++; return { ok: true, json: async () => ({}) }; };
+  await assert.rejects(
+    runSynthese({
+      files: FILES,
+      cfg: { jwt: "j", tenantId: "t", syntheseAppId: "app", pollTimeoutMs: 10, pollIntervalMs: 1 },
+      fetchImpl,
+      sleep: async () => {},
+    }),
+    /IAKA_UNAVAILABLE/,
+  );
+  assert.equal(called, 0);
+});
+
+test("app_id vide → WORKFLOW_NON_CONFIGURE avant tout fetch", async () => {
+  let called = 0;
+  const fetchImpl = async () => { called++; return { ok: true, json: async () => ({}) }; };
+  await assert.rejects(
+    runSynthese({
+      files: FILES,
+      cfg: { baseUrl: "https://iaka.test", jwt: "j", tenantId: "t", syntheseAppId: "", pollTimeoutMs: 10, pollIntervalMs: 1 },
+      fetchImpl,
+      sleep: async () => {},
+    }),
+    /WORKFLOW_NON_CONFIGURE/,
+  );
+  assert.equal(called, 0);
+});
+
 test("le XML est delimite comme donnee, jamais colle brut au prompt", async () => {
   const { fetchImpl, prompts } = stub([{ ok: true }]);
   await runSynthese({
