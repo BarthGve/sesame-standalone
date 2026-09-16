@@ -160,7 +160,8 @@ curl -s localhost/api/config
 joignable). Les flags `workflows` reflètent la **présence** des `app_id`,
 pas leur validité métier.
 
-Un `app_id` faux se verra à l’usage (`IAKA_UPSTREAM` / 422) — voir
+Un `app_id` **vide** → `WORKFLOW_NON_CONFIGURE` (422) avant tout fetch.
+Un `app_id` faux se verra à l’usage (`IAKA_UPSTREAM`) — voir
 [Dépannage](Depannage.md).
 
 ## 4. Audit nocturne rens-api
@@ -172,6 +173,8 @@ exactement `1`. Pour un run volontaire :
 ```bash
 docker compose exec -e AUDIT_NIGHTLY=1 rens-api node /app/audit/nightly.mjs
 ```
+
+Rôle d’écriture : `PGUSER_SEED=rens_seed` (compose). Pas `rens_api`.
 
 Il utilise `IAKA_QUALITE_APP_ID` et les mêmes knobs `IAKA_EXECUTE_PATH` /
 `IAKA_STATUS_PATH`. Ne pas le lancer tant que qualité n’est pas câblée.

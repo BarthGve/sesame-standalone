@@ -1,3 +1,3 @@
 { "name": "rgp-api", "version": "1.0.0", "private": true,
-  "scripts": { "test": "node --test perquisition.test.js photo.test.js server.test.js migrate.test.js migrations/000_base.test.mjs" },
+  "scripts": { "test": "node --test perquisition.test.js photo.test.js server.test.js migrate.test.js openapi.test.js migrations/000_base.test.mjs" },
   "dependencies": { "minio": "^8.0.7", "pg": "^8.13.1" } }

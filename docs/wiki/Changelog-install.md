@@ -74,6 +74,8 @@ Il n’y a **pas** de cron in-process. Pour un audit :
 docker compose exec -e AUDIT_NIGHTLY=1 rens-api node /app/audit/nightly.mjs
 ```
 
+Écriture `frs_audit_*` : `PGUSER_SEED=rens_seed` (compose), pas `rens_api`.
+
 Ne pas laisser `AUDIT_NIGHTLY=1` en permanent sur une install de démo sans
 `IAKA_QUALITE_APP_ID` câblé.
 
@@ -82,10 +84,10 @@ Ne pas laisser `AUDIT_NIGHTLY=1` en permanent sur une install de démo sans
 | Variable | Notes install |
 |---|---|
 | `IAKA_BASE_URL` | Placeholder `http://iaka:8080` — hostname à faire résoudre par le BFF |
-| `IAKA_JWT` / `IAKA_TENANT_ID` | Hors git. Vides : `IAKA_UNAVAILABLE` seulement pour carte/RGP/RENS (`iakaReady`) ; identify/analyse/PV/éval/Ariane → `*_UPSTREAM` |
-| `IAKA_*_APP_ID` | Tous vides ; flag `workflows.*` false dans `/api/config` — l’UI n’en bloque pas l’appel (sauf RAG Ariane) |
+| `IAKA_JWT` / `IAKA_TENANT_ID` | Hors git. Vides : `IAKA_UNAVAILABLE` (503) sur tous les points d’entrée IAKA |
+| `IAKA_*_APP_ID` | Tous vides ; flag `workflows.*` false ; appel BFF → `WORKFLOW_NON_CONFIGURE` (422) |
 | `IAKA_RAG_*` | Corpus vide = RAG off |
-| `RGP_API_TOKEN` / `RENS_API_TOKEN` | Doivent matcher `API_TOKEN=changeme` du compose |
+| `RGP_API_TOKEN` / `RENS_API_TOKEN` / `COTE_API_TOKEN` | Interpolés dans `API_TOKEN` compose (`${…:-changeme}`) |
 | `POLL_*` / `CARTE_POLL_*` | Timeouts de poll IAKA |
 | `PROXY_PORT` | `8787` dans le conteneur ; hôte = port **80** |
 

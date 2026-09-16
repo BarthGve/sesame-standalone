@@ -2,7 +2,7 @@
  "openapi": "3.1.0",
  "info": { "title": "RENS Lookup API (FRS)", "version": "1.0.0",
    "description": "Consultation read-only des fiches de renseignement simplifiées (FRS). Enveloppe: succès { data }, erreur { error: { code, message } }." },
- "servers": [{ "url": "http://localhost:8081", "description": "Production" }],
+ "servers": [{ "url": "http://rens-api:8080", "description": "Standalone — DNS Docker rens-api:8080" }],
  "security": [{ "bearerAuth": [] }],
  "paths": {
   "/fiches": {

@@ -17,6 +17,10 @@ function reponse() {
   };
 }
 
+test("servers pointe vers le DNS Docker cote-api", () => {
+  assert.equal(spec.servers[0].url, "http://cote-api:8082");
+});
+
 test("le contrat decrit la route /cote en GET", () => {
   assert.ok(spec.paths["/cote"].get);
   assert.equal(spec.paths["/cote"].get.operationId, "getCote");

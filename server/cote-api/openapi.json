@@ -7,8 +7,8 @@
  },
  "servers": [
   {
-   "url": "http://localhost:8082",
-   "description": "Standalone — conteneur interne cote-api:8082 (même schéma que rgp-api et rens-api)."
+   "url": "http://cote-api:8082",
+   "description": "Standalone — DNS Docker cote-api:8082"
   }
  ],
  "security": [

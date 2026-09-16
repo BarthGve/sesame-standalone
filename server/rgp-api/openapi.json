@@ -7,8 +7,8 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080",
-      "description": "Production"
+      "url": "http://rgp-api:8080",
+      "description": "Standalone — DNS Docker rgp-api:8080"
     }
   ],
   "security": [

@@ -71,9 +71,10 @@ Anciennes routes, **redirigées** :
 - `/app/rens` → `/app/frs?onglet=flux`
 - `/app/qualite` → `/app/frs?onglet=controle`
 
-Le seed FRS (`server/rens-api/seed/frs_seed.sql`) peuple le flux. Sans seed :
-listes vides, pas de crash. L’audit nocturne est **off** (`AUDIT_NIGHTLY=0`)
-tant qu’on ne le lance pas à la main.
+Le seed FRS (`frs_seed.sql`) est appliqué au **premier** init Postgres.
+Sans seed (volume ancien, seed en échec) : listes vides, pas de crash.
+L’audit nocturne est **off** (`AUDIT_NIGHTLY=0`) tant qu’on ne le lance
+pas à la main.
 
 ## `/app/qualite`
 

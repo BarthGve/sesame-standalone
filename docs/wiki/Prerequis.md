@@ -83,13 +83,13 @@ Seeds **dans git**, pas des archives :
 
 ## Tokens inter-services
 
-Le BFF injecte un Bearer vers rgp/rens. Les valeurs du `.env` **doivent
-matcher** les `API_TOKEN` du compose :
+Le BFF injecte un Bearer vers rgp/rens. Un seul `.env` : compose
+interpole `API_TOKEN: ${RGP_API_TOKEN:-changeme}` (idem RENS / COTE).
 
-- compose : `API_TOKEN: changeme` (rgp-api, rens-api, cote-api)
-- `.env.example` : `RGP_API_TOKEN=changeme` et `RENS_API_TOKEN=changeme`
+- `.env.example` : `RGP_API_TOKEN=changeme`, `RENS_API_TOKEN=changeme`,
+  `COTE_API_TOKEN=changeme`
 
-Sans `.env` copié, le BFF part avec des tokens vides et les API répondent 401.
+Sans `.env` copié, les API ont `changeme` ; le BFF a des tokens vides → 401.
 
 ## Hors périmètre
 

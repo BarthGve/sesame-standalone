@@ -45,5 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build image (sans push)
-        run: docker build -t sesame-standalone:ci .
+      - name: docker compose config
+        run: docker compose config
+      - name: Build images (sans push)
+        run: docker compose build

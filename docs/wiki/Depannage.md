@@ -26,24 +26,10 @@ les appels échoueront.
 
 ## `IAKA_UNAVAILABLE` (503)
 
-**Pas universel.** La garde `iakaReady()` n’existe que dans `server/iaka.mjs`
-(`execWorkflow`). Elle lève `IAKA_UNAVAILABLE` **avant** tout fetch si
-`IAKA_BASE_URL`, `IAKA_JWT` ou `IAKA_TENANT_ID` est vide.
-
-Pages concernées (passent par `iaka.mjs`) :
-
-- `/app/carte`, `/app/rgp`
-- FRS synthèse / zoom, qualité à la demande (via `runRensWorkflow`)
-
-Pages **sans** cette garde — l’appel part, codes `*_UPSTREAM` :
-
-| Page | Code typique |
-|---|---|
-| `/app/saisies` identify photo | `IDENTIFY_UPSTREAM` |
-| `/app/analyse` | `SYNTHESE_UPSTREAM` |
-| `/app/pv-transport` | `PVTCMP_UPSTREAM` |
-| `/app/evaluation` | `EVALUATION_UPSTREAM` |
-| `/app/ariane` | `ARIANE_UPSTREAM` |
+`iakaReady()` sur **tous** les points d’entrée IAKA (carte, RGP, FRS,
+identify, analyse, PV, évaluation, Ariane extract/consolidate). Lève
+**avant** tout fetch si `IAKA_BASE_URL`, `IAKA_JWT` ou `IAKA_TENANT_ID`
+est vide.
 
 Actions :
 
@@ -52,11 +38,11 @@ Actions :
 - **Ne pas mettre de JWT dans le wiki** : coller le jeton dans `.env` puis
   `docker compose up -d bff --force-recreate`.
 
-Un `app_id` vide ne masque **pas** l’écran : le flag `workflows.*` de
-`/api/config` est `false`, mais le front appelle quand même le BFF. IAKA
-répond alors souvent 422 / `IAKA_UPSTREAM` (ou l’équivalent métier ci-dessus).
-Seul Ariane RAG a un message dédié (« corpus non configuré ») si
-`IAKA_RAG_CORPUS_ID` est vide.
+## `WORKFLOW_NON_CONFIGURE` (422)
+
+L’`app_id` du workflow appelé est vide (`IAKA_*_APP_ID`). Aucun fetch IAKA.
+Renseigner l’UUID dans `.env` puis recréer le BFF. Le flag `workflows.*` de
+`/api/config` est `false` ; le BFF refuse maintenant l’appel.
 
 ## `IAKA_UPSTREAM` (502)
 
@@ -135,19 +121,20 @@ RGP et la saisie restent utilisables sans aperçu.
 Le BFF n’a pas le même Bearer que l’API :
 
 ```bash
-# doit matcher le compose API_TOKEN=changeme
+# compose interpole RGP_API_TOKEN / RENS_API_TOKEN / COTE_API_TOKEN
 grep TOKEN .env
 ```
 
-Sans `.env` (`cp .env.example .env` oublié), `RGP_API_TOKEN` /
-`RENS_API_TOKEN` sont vides.
+Sans `.env` (`cp .env.example .env` oublié), les tokens retombent sur
+`changeme` côté API ; le BFF sans `.env` a des tokens vides → 401.
 
 ## Seeds absents
 
 - RGP : `rgp-api` n’a pas fini `start.js` (voir `docker compose logs rgp-api`).
   UNA attendue : `12345/1/2026`.
-- FRS : migrations + `frs_seed.sql` pas encore appliqués — commandes dans
-  [Installation](Installation.md).
+- FRS : volume Postgres déjà existant d’avant l’init auto — `start.js`
+  rattrape si `frs` est vide ; sinon `docker compose down -v` (efface les
+  données) puis `up`. Voir [Installation](Installation.md).
 
 ## Jobs disparus (`JOB_INCONNU`)
 
