@@ -879,6 +879,78 @@ test("GET /api/ready : ok + flags, sans JWT ni app_id", async () => {
   }, { cfg: handlerCfg, fetchImpl });
 });
 
+test("GET /api/adresses → { data: suggestions }", async () => {
+  const fetchImpl = async (url) => {
+    assert.ok(String(url).includes("/search/"));
+    assert.ok(String(url).includes("q=rue"));
+    return {
+      ok: true,
+      json: async () => ({
+        features: [{ properties: { label: "1 Rue Y", name: "1 Rue Y", city: "Lyon", postcode: "69001", citycode: "69123" } }],
+      }),
+    };
+  };
+  await withServer(async () => fc, async (port) => {
+    const res = await fetch(`http://localhost:${port}/api/adresses?q=rue%20y`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.data[0].commune, "Lyon");
+    assert.equal(body.data[0].insee, "69123");
+  }, { cfg: { banApiUrl: "http://addok:7878" }, fetchImpl });
+});
+
+test("GET /api/tiles/:z/:x/:y sans template → 404 TILES_OFF", async () => {
+  await withServer(async () => fc, async (port) => {
+    const res = await fetch(`http://localhost:${port}/api/tiles/1/2/3`);
+    assert.equal(res.status, 404);
+    assert.equal((await res.json()).error, "TILES_OFF");
+  }, { cfg: { mapTilesUrl: "" } });
+});
+
+test("GET /api/tiles/:z/:x/:y pipe image amont", async () => {
+  let captured;
+  const fetchImpl = async (u, init) => {
+    captured = { u, init };
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: (k) => (k.toLowerCase() === "content-type" ? "image/png" : null) },
+      arrayBuffer: async () => Buffer.from("PNGBYTES"),
+    };
+  };
+  await withServer(async () => fc, async (port) => {
+    const res = await fetch(`http://localhost:${port}/api/tiles/2/1/0`);
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get("content-type"), "image/png");
+    assert.equal(Buffer.from(await res.arrayBuffer()).toString(), "PNGBYTES");
+    assert.equal(captured.u, "http://t/2/1/0.png");
+    assert.equal(captured.init.redirect, "manual");
+  }, { cfg: { mapTilesUrl: "http://t/{z}/{x}/{y}.png" }, fetchImpl });
+});
+
+test("GET /api/tiles/:z/:x/:y amont ko → 502 TILES_UPSTREAM", async () => {
+  const fetchImpl = async () => { throw new Error("ECONNREFUSED"); };
+  await withServer(async () => fc, async (port) => {
+    const res = await fetch(`http://localhost:${port}/api/tiles/1/1/1`);
+    assert.equal(res.status, 502);
+    assert.equal((await res.json()).error, "TILES_UPSTREAM");
+  }, { cfg: { mapTilesUrl: "http://t/{z}/{x}/{y}.png" }, fetchImpl });
+});
+
+test("GET /api/tiles/:z/:x/:y redirect amont → 502 (pas de suivi hors template)", async () => {
+  const fetchImpl = async () => ({
+    ok: false,
+    status: 302,
+    headers: { get: () => "http://evil/" },
+    arrayBuffer: async () => Buffer.from(""),
+  });
+  await withServer(async () => fc, async (port) => {
+    const res = await fetch(`http://localhost:${port}/api/tiles/1/1/1`);
+    assert.equal(res.status, 502);
+    assert.equal((await res.json()).error, "TILES_UPSTREAM");
+  }, { cfg: { mapTilesUrl: "http://t/{z}/{x}/{y}.png" }, fetchImpl });
+});
+
 test("BFF_API_TOKEN : /api sans Bearer → 401 ; health reste ouvert", async () => {
   const handler = createHandler({ cfg: { bffApiToken: "secret" } });
   const denied = await appelJson(handler, "GET", "/api/evaluation/unas");

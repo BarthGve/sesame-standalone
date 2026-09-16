@@ -19,14 +19,41 @@ import { listerUnasEvaluables } from "./unasEvaluables.mjs";
 import { runEvaluation } from "./evaluationWorkflow.mjs";
 import { loadCfg, publicConfig } from "./config.mjs";
 import { probeIaka } from "./ready.mjs";
+import { searchAdresses } from "./adresses.mjs";
+import { tilesUpstreamUrl } from "./tiles.mjs";
 import {
   ERROR_STATUS,
   readBody,
   writeBodyTooLarge,
   writeJson,
+  writeError,
   logRequest,
   checkBffAccess,
 } from "./httpUtil.mjs";
+
+const TILES_FETCH_MS = 5000;
+
+async function handleTiles(req, res, cfg, fetchImpl, z, x, y) {
+  const upstream = tilesUpstreamUrl(cfg.mapTilesUrl || "", z, x, y);
+  if (!upstream) return writeError(res, "TILES_OFF");
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), TILES_FETCH_MS);
+  try {
+    // redirect: 'manual' — ne pas suivre un Location hors du template substitué.
+    const up = await fetchImpl(upstream, { method: "GET", redirect: "manual", signal: ctrl.signal });
+    if (!up || (up.status >= 300 && up.status < 400) || !up.ok) {
+      return writeError(res, "TILES_UPSTREAM");
+    }
+    const type = up.headers?.get?.("content-type") || "application/octet-stream";
+    res.writeHead(up.status, { "Content-Type": type });
+    res.end(Buffer.from(await up.arrayBuffer()));
+  } catch (e) {
+    console.error("tiles_upstream_error", e?.message);
+    return writeError(res, "TILES_UPSTREAM");
+  } finally {
+    clearTimeout(t);
+  }
+}
 
 const RGP_ROUTES = {
   "POST /api/perquisition": "/perquisition",
@@ -165,6 +192,14 @@ export function createHandler({ cfg, run = runWorkflow, runRaw = runWorkflowRaw,
       return writeJson(res, 200, {
         data: { ok: true, iaka: iaka.reachable, workflows: pub.workflows, tiles: pub.tiles, ban: pub.ban, rag: pub.rag },
       });
+    }
+    if (url.pathname === "/api/adresses" && req.method === "GET") {
+      const q = url.searchParams.get("q") || "";
+      return writeJson(res, 200, { data: await searchAdresses(q, cfg, fetchImpl) });
+    }
+    const tilesMatch = /^\/api\/tiles\/(\d+)\/(\d+)\/(\d+)$/.exec(url.pathname);
+    if (tilesMatch && req.method === "GET") {
+      return handleTiles(req, res, cfg, fetchImpl, tilesMatch[1], tilesMatch[2], tilesMatch[3]);
     }
     const rgpKey = `${req.method} ${url.pathname}`;
     if (rgpKey in RGP_ROUTES) {

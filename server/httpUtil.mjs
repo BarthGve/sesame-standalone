@@ -33,6 +33,9 @@ export const ERROR_STATUS = {
   UNA_REQUIS: 400,
   BODY_TOO_LARGE: 413,
   UNAUTHORIZED: 401,
+  BAN_UPSTREAM: 502,
+  TILES_OFF: 404,
+  TILES_UPSTREAM: 502,
 };
 
 // Borne anti-DoS mémoire : photos base64 + PDF multi-pièces Ariane. Défaut 15 Mo.
