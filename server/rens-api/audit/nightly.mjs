@@ -158,7 +158,11 @@ async function main() {
     dry,
   };
   const stamp = new Date().toISOString();
-  const pool = new Pool({ max: Math.max(2, cfg.concurrence + 1) });
+  const pool = new Pool({
+    max: Math.max(2, cfg.concurrence + 1),
+    user: process.env.PGUSER_SEED || process.env.PGUSER_MIGRATE || process.env.PGUSER,
+    password: process.env.PGPASSWORD_SEED || process.env.PGPASSWORD_MIGRATE || process.env.PGPASSWORD,
+  });
   const client = await pool.connect();
   try {
     const { rows: [{ j }] } = await client.query(

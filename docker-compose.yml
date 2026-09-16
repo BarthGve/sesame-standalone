@@ -11,6 +11,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+      - ./server/rens-api/migrations:/opt/rens/migrations:ro
+      - ./server/rens-api/seed/frs_seed.sql:/opt/rens/frs_seed.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sesame"]
       interval: 5s
@@ -27,7 +29,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     command: ["sleep", "infinity"]
 
   minio:
@@ -60,8 +62,8 @@ services:
       minio-init:
         condition: service_completed_successfully
     environment:
-      # Placeholder air-gap LAN only — must match RGP_API_TOKEN in .env.
-      API_TOKEN: changeme
+      # Placeholder air-gap LAN only — interpolated from .env (RGP_API_TOKEN).
+      API_TOKEN: ${RGP_API_TOKEN:-changeme}
       PGHOST: postgres
       PGUSER: rgp_api
       PGPASSWORD: rgp-api-local-dev
@@ -84,14 +86,18 @@ services:
       - path: .env
         required: false
     environment:
-      # Placeholder air-gap LAN only — must match RENS_API_TOKEN in .env.
-      API_TOKEN: changeme
+      # Placeholder air-gap LAN only — interpolated from .env (RENS_API_TOKEN).
+      API_TOKEN: ${RENS_API_TOKEN:-changeme}
       PGHOST: postgres
       PGUSER: rens_api
       PGPASSWORD: rens-api-local-dev
       PGDATABASE: rens
+      PGUSER_MIGRATE: sesame
+      PGPASSWORD_MIGRATE: sesame-local-dev
       PGUSER_REDACTION: rens_redaction
       PGPASSWORD_REDACTION: rens-redaction-local-dev
+      PGUSER_SEED: rens_seed
+      PGPASSWORD_SEED: rens-seed-local-dev
       AUDIT_NIGHTLY: "0"
     expose:
       - "8080"
@@ -99,8 +105,8 @@ services:
   cote-api:
     build: ./server/cote-api
     environment:
-      # Placeholder air-gap LAN only (not a production secret).
-      API_TOKEN: changeme
+      # Placeholder air-gap LAN only — interpolated from .env (COTE_API_TOKEN).
+      API_TOKEN: ${COTE_API_TOKEN:-changeme}
     expose:
       - "8082"
 

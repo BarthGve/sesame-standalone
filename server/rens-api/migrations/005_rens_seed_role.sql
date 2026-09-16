@@ -1,7 +1,7 @@
 -- Rôle ÉCRITURE dédié à l'alimentation nocturne (seed/nightly.mjs). Distinct de rens_api/rens_ro
 -- qui restent READ-ONLY (le serveur API ne fait que des SELECT) : les écritures passent par ce
--- rôle à privilèges étroits, table-scopé, jamais par l'API. Mot de passe posé au déploiement
--- (ALTER ROLE ... PASSWORD) via variable d'environnement, jamais commité — cf. 002_roles.sql.
+-- rôle à privilèges étroits, table-scopé, jamais par l'API. Mot de passe local-dev :
+-- infra/postgres/init/02-passwords.sql (rens-seed-local-dev), PGPASSWORD_SEED dans compose.
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'rens_seed') THEN

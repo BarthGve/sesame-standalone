@@ -73,7 +73,10 @@ async function main() {
   const retention = Number(process.env.RETENTION_DAYS ?? 90);
   const stamp = new Date().toISOString();
 
-  const pool = new Pool();
+  const pool = new Pool({
+    user: process.env.PGUSER_SEED || process.env.PGUSER_MIGRATE || process.env.PGUSER,
+    password: process.env.PGPASSWORD_SEED || process.env.PGPASSWORD_MIGRATE || process.env.PGPASSWORD,
+  });
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

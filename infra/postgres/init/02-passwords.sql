@@ -32,8 +32,14 @@ BEGIN
   ELSE
     ALTER ROLE rens_redaction WITH PASSWORD 'rens-redaction-local-dev';
   END IF;
+
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'rens_seed') THEN
+    CREATE ROLE rens_seed LOGIN PASSWORD 'rens-seed-local-dev';
+  ELSE
+    ALTER ROLE rens_seed WITH PASSWORD 'rens-seed-local-dev';
+  END IF;
 END$$;
 
 GRANT CONNECT ON DATABASE rgp TO rgp_api, iaka_ro;
-GRANT CONNECT ON DATABASE rens TO rens_api, rens_ro, rens_redaction;
+GRANT CONNECT ON DATABASE rens TO rens_api, rens_ro, rens_redaction, rens_seed;
 GRANT CONNECT ON DATABASE bdsp TO iaka_ro;
