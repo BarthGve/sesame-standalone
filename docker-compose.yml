@@ -1,0 +1,138 @@
+# Compose air-gap LAN — API_TOKEN / MINIO_* / PG* = placeholders locaux, pas des secrets prod.
+# IAKA n'est PAS un service ici : joindre via IAKA_BASE_URL dans .env.
+# Seul port LAN : 80 (bff). Postgres 5432 : profil debug uniquement.
+services:
+  postgres:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_USER: sesame
+      # Placeholder air-gap LAN only (not a production secret).
+      POSTGRES_PASSWORD: sesame-local-dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sesame"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Publie 5432 sur l'hôte : docker compose --profile debug up
+  # (réseau partagé avec postgres ; ports rattachés au netns postgres)
+  postgres-debug:
+    profiles: ["debug"]
+    image: alpine:3.20
+    network_mode: "service:postgres"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5432:5432"
+    command: ["sleep", "infinity"]
+
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    command: server /data --console-address ":9001"
+    environment:
+      # Placeholders air-gap LAN only (not production secrets).
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minio-local-dev
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc:RELEASE.2024-11-17T19-35-38Z
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minio-local-dev
+    volumes:
+      - ./infra/minio/init.sh:/init.sh:ro
+    entrypoint: ["/bin/sh", "/init.sh"]
+    restart: "no"
+
+  rgp-api:
+    build: ./server/rgp-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      # Placeholder air-gap LAN only — must match RGP_API_TOKEN in .env.
+      API_TOKEN: changeme
+      PGHOST: postgres
+      PGUSER: rgp_api
+      PGPASSWORD: rgp-api-local-dev
+      PGDATABASE: rgp
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: "9000"
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minio-local-dev
+      MINIO_BUCKET: perquisitions
+    expose:
+      - "8080"
+
+  rens-api:
+    build: ./server/rens-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Placeholder air-gap LAN only — must match RENS_API_TOKEN in .env.
+      API_TOKEN: changeme
+      PGHOST: postgres
+      PGUSER: rens_api
+      PGPASSWORD: rens-api-local-dev
+      PGDATABASE: rens
+      PGUSER_REDACTION: rens_redaction
+      PGPASSWORD_REDACTION: rens-redaction-local-dev
+      AUDIT_NIGHTLY: "0"
+    expose:
+      - "8080"
+
+  cote-api:
+    build: ./server/cote-api
+    environment:
+      # Placeholder air-gap LAN only (not a production secret).
+      API_TOKEN: changeme
+    expose:
+      - "8082"
+
+  bff:
+    build: .
+    depends_on:
+      - rgp-api
+      - rens-api
+      - cote-api
+    ports:
+      - "80:8787"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      STATIC_DIR: /app/dist
+      PROXY_PORT: "8787"
+      RGP_API_URL: http://rgp-api:8080
+      RENS_API_URL: http://rens-api:8080
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  postgres_data:
+  minio_data:
