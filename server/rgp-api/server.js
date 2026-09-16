@@ -502,4 +502,4 @@ const server = http.createServer(async (req, res) => {
 
 if (require.main === module) server.listen(8080, () => console.log('rgp-api :8080'));
 
-module.exports = { createUna, listUna, updateUna, LIEU_TYPES };
+module.exports = { createUna, listUna, updateUna, LIEU_TYPES, server };

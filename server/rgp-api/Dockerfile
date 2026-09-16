@@ -2,7 +2,9 @@ FROM node:20-alpine
 WORKDIR /app
 COPY package.json ./
 RUN npm install --omit=dev
-COPY server.js perquisition.js ./
+COPY server.js perquisition.js photo.js migrate.js start.js ./
+COPY migrations/ ./migrations/
+COPY seed/ ./seed/
 USER node
 EXPOSE 8080
-CMD ["node","server.js"]
+CMD ["node","start.js"]
