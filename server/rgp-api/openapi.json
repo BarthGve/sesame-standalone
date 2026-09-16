@@ -1,0 +1,1558 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RGP Lookup API (carnet)",
+    "version": "1.0.0-modtest",
+    "description": "API HTTP de consultation et d'allocation de procédures RGP par UNA (unite/numero/annee).\nEnveloppe de réponse uniforme : succès { \"data\": ... }, erreur { \"error\": { \"code\": \"...\", \"message\": \"...\" } }.\nUNA = unite/numero/annee. numero est un compteur qui repart à 1 par couple (unite, annee).\n"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Procédures",
+      "description": "Consultation (GET) et allocation (POST) de procédures RGP."
+    },
+    {
+      "name": "Système"
+    }
+  ],
+  "paths": {
+    "/procedure": {
+      "get": {
+        "tags": [
+          "Procédures"
+        ],
+        "summary": "Consulter une procédure par UNA",
+        "description": "Fournir SOIT l'UNA complète en chaîne via una (ou ses alias pv / numero, découpée sur /), SOIT les trois composantes séparées unite, numero, annee.\n",
+        "operationId": "getProcedure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Una"
+          },
+          {
+            "$ref": "#/components/parameters/Pv"
+          },
+          {
+            "$ref": "#/components/parameters/NumeroQuery"
+          },
+          {
+            "$ref": "#/components/parameters/Unite"
+          },
+          {
+            "$ref": "#/components/parameters/Annee"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Procédure trouvée.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Procedure"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Procédures"
+        ],
+        "summary": "Allouer un nouveau numéro de procédure",
+        "description": "Alloue numero = MAX(numero) + 1 pour le couple (unite, annee) de façon atomique. Le type peut être un libellé (ex. PVEJ) ou un id.\n",
+        "operationId": "createProcedure",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcedureCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Procédure créée ; numéro alloué.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Procedure"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/pv": {
+      "get": {
+        "tags": [
+          "Procédures"
+        ],
+        "summary": "Alias de GET /procedure",
+        "description": "Fournir SOIT l'UNA complète en chaîne via una (ou ses alias pv / numero, découpée sur /), SOIT les trois composantes séparées unite, numero, annee.\n",
+        "operationId": "getPv",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Una"
+          },
+          {
+            "$ref": "#/components/parameters/Pv"
+          },
+          {
+            "$ref": "#/components/parameters/NumeroQuery"
+          },
+          {
+            "$ref": "#/components/parameters/Unite"
+          },
+          {
+            "$ref": "#/components/parameters/Annee"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Procédure trouvée.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Procedure"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Procédures"
+        ],
+        "summary": "Alias de POST /procedure",
+        "description": "Alloue numero = MAX(numero) + 1 pour le couple (unite, annee) de façon atomique. Le type peut être un libellé (ex. PVEJ) ou un id.\n",
+        "operationId": "createPv",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcedureCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Procédure créée ; numéro alloué.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Procedure"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/procedures": {
+      "get": {
+        "tags": [
+          "Procédures"
+        ],
+        "summary": "Lister / filtrer les procédures",
+        "description": "Renvoie { data: [ ... ] } : enregistrements correspondant aux filtres.\n",
+        "operationId": "listProcedures",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FilterType"
+          },
+          {
+            "$ref": "#/components/parameters/FilterUnite"
+          },
+          {
+            "$ref": "#/components/parameters/FilterAnnee"
+          },
+          {
+            "$ref": "#/components/parameters/FilterGroupe"
+          },
+          {
+            "$ref": "#/components/parameters/FilterUrgent"
+          },
+          {
+            "$ref": "#/components/parameters/FilterSensible"
+          },
+          {
+            "$ref": "#/components/parameters/FilterTypeLieu"
+          },
+          {
+            "$ref": "#/components/parameters/FilterLimit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des procédures."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Système"
+        ],
+        "summary": "Sonde de santé",
+        "operationId": "getHealth",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service opérationnel.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/modifier": {
+      "post": {
+        "tags": [
+          "Procédures"
+        ],
+        "summary": "Modifier un UNA (sauf identité)",
+        "description": "Modifie les champs fournis d'un UNA existant. L'identité unite/numero/annee n'est jamais modifiée.\n",
+        "operationId": "modifier_procedure",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcedureUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Procédure modifiée.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Procedure"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/perquisition": {
+      "post": {
+        "tags": [
+          "Perquisitions"
+        ],
+        "summary": "Créer une perquisition et ses objets saisis",
+        "operationId": "createPerquisition",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "adresse",
+                  "objets"
+                ],
+                "properties": {
+                  "una": {
+                    "type": "string",
+                    "description": "unite/numero/annee"
+                  },
+                  "una_id": {
+                    "type": "integer"
+                  },
+                  "adresse": {
+                    "type": "string"
+                  },
+                  "code_postal": {
+                    "type": "string"
+                  },
+                  "commune": {
+                    "type": "string",
+                    "description": "code INSEE ou nom"
+                  },
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  },
+                  "type_lieu": {
+                    "type": "string",
+                    "description": "Type de lieu de la perquisition. Valeurs : DOMICILE, LOCAL_PRO, VEHICULE, AUTRE. Valeur hors liste ignoree. (Sans enum : le bridge openapi->MCP dIAka echoue au demarrage sur un enum.)"
+                  },
+                  "perquisitionne": {
+                    "type": "string"
+                  },
+                  "opj": {
+                    "type": "string"
+                  },
+                  "date_debut": {
+                    "type": "string"
+                  },
+                  "intervenants": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "pieces": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "objets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "categorie"
+                      ],
+                      "properties": {
+                        "categorie": {
+                          "type": "string"
+                        },
+                        "sous_type": {
+                          "type": "string"
+                        },
+                        "confiance": {
+                          "type": "number"
+                        },
+                        "numero_scelle": {
+                          "type": "string"
+                        },
+                        "situation": {
+                          "type": "string",
+                          "description": "Situation du scelle. Valeurs : SAISI_SOUS_SCELLE, SAISI_NON_SCELLE. (Sans enum : voir type_lieu.)"
+                        },
+                        "lieu": {
+                          "type": "string"
+                        },
+                        "photo_url": {
+                          "type": "string"
+                        },
+                        "estimation": {
+                          "type": "object"
+                        },
+                        "champs": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "cle": {
+                                "type": "string"
+                              },
+                              "libelle": {
+                                "type": "string"
+                              },
+                              "valeur": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "source": {
+                                "type": "string",
+                                "description": "Origine du champ. Valeurs : deduit, a_completer. (Sans enum : voir type_lieu.)"
+                              },
+                              "obligatoire": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        },
+                        "categoriesAlternatives": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perquisition créée (ou erreur en enveloppe {error}).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    },
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Perquisitions"
+        ],
+        "summary": "Détail d'une perquisition",
+        "operationId": "getPerquisition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/perquisitions": {
+      "get": {
+        "tags": [
+          "Perquisitions"
+        ],
+        "summary": "Lister les perquisitions d'un UNA",
+        "operationId": "listPerquisitions",
+        "parameters": [
+          {
+            "name": "una",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "unite/numero/annee"
+          },
+          {
+            "name": "una_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/objets/recherche": {
+      "get": {
+        "tags": [
+          "Perquisitions"
+        ],
+        "summary": "Recoupement d'objets saisis par identifiant fort",
+        "operationId": "searchObjets",
+        "parameters": [
+          {
+            "name": "identifiant",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "immatriculation, VIN, IMEI… (normalisé)"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "filtre optionnel: IMMATRICULATION, VIN, NUMERO_MOTEUR, BIC, IMEI, SIM, MSISDN, NUMERO_SERIE_ARME, NUMERO_DOCUMENT, NUMERO_COMPTE, NUMERO_SERIE"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/perquisition/objets": {
+      "post": {
+        "tags": [
+          "Perquisitions"
+        ],
+        "summary": "Ajouter des objets à une perquisition existante",
+        "operationId": "addObjets",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "perquisition_id",
+                  "objets"
+                ],
+                "properties": {
+                  "perquisition_id": {
+                    "type": "integer"
+                  },
+                  "objets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perquisition à jour (ou erreur en enveloppe {error}).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    },
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/perquisition/objet/update": {
+      "post": {
+        "tags": [
+          "Perquisitions"
+        ],
+        "summary": "Mettre à jour un objet saisi existant",
+        "operationId": "updateObjet",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Mise à jour partielle. objet_id seul est requis. Le descriptif (categorie, sous_type, numero_scelle, situation, lieu) n'est mis à jour que si categorie est fourni ; champs/identifiants ne sont remplacés que si champs est fourni ([] = vidé) ; l'estimation (colonnes estim_* + sources/hypotheses) n'est reconstruite que si estimation est fournie. photo_url reste toujours inchangé.",
+                "required": [
+                  "objet_id"
+                ],
+                "properties": {
+                  "objet_id": {
+                    "type": "integer"
+                  },
+                  "categorie": {
+                    "type": "string"
+                  },
+                  "sous_type": {
+                    "type": "string"
+                  },
+                  "numero_scelle": {
+                    "type": "string"
+                  },
+                  "situation": {
+                    "type": "string"
+                  },
+                  "lieu": {
+                    "type": "string"
+                  },
+                  "champs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "estimation": {
+                    "type": "object",
+                    "description": "Estimation de valeur (forme camelCase, identique à insertObjets). Si présente, écrase les colonnes estim_* et reconstruit les tables sources/hypotheses.",
+                    "properties": {
+                      "prixBas": {
+                        "type": "number",
+                        "description": "Borne basse de la fourchette de prix (-> estim_prix_bas)."
+                      },
+                      "prixMoyen": {
+                        "type": "number",
+                        "description": "Prix moyen estimé (-> estim_prix_moyen)."
+                      },
+                      "prixHaut": {
+                        "type": "number",
+                        "description": "Borne haute de la fourchette de prix (-> estim_prix_haut)."
+                      },
+                      "devise": {
+                        "type": "string",
+                        "description": "Devise ISO, ex. EUR (-> estim_devise)."
+                      },
+                      "confiance": {
+                        "type": "number",
+                        "description": "Indice de confiance 0-1 (-> estim_confiance)."
+                      },
+                      "avertissement": {
+                        "type": "string",
+                        "description": "Avertissement recopié tel quel depuis la cote (-> estim_avertissement)."
+                      },
+                      "sources": {
+                        "type": "array",
+                        "description": "Sources de cote (-> table objet_estimation_source, dans l'ordre).",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "site": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "prix": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      },
+                      "hypotheses": {
+                        "type": "array",
+                        "description": "Hypothèses de cote (-> table objet_estimation_hypothese, dans l'ordre).",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perquisition à jour (ou erreur {error}).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    },
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/perquisition/objet/delete": {
+      "post": {
+        "tags": [
+          "Perquisitions"
+        ],
+        "summary": "Supprimer un objet saisi",
+        "operationId": "deleteObjet",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "objet_id"
+                ],
+                "properties": {
+                  "objet_id": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perquisition à jour (ou erreur {error}).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    },
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/procedure/creer": {
+      "get": {
+        "tags": [
+          "Procedures"
+        ],
+        "summary": "Allouer un numero de procedure (variante GET)",
+        "description": "Identique a POST /procedure mais parametres en query. Contournement du bug dIAka sur les requetes POST : a privilegier pour la creation depuis un agent.",
+        "operationId": "creer_procedure",
+        "parameters": [
+          {
+            "name": "unite",
+            "in": "query",
+            "required": true,
+            "description": "Code unité.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "description": "Libellé (ex. PVEJ) ou id du type de document.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "synthese",
+            "in": "query",
+            "required": false,
+            "description": "Synthèse / objet de la procédure (ex. « cambriolage »). Optionnel.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commune",
+            "in": "query",
+            "required": false,
+            "description": "Commune du fait : nom (ex. « Candé ») ou code INSEE. Résolue côté API. Optionnel.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type_lieu",
+            "in": "query",
+            "required": false,
+            "description": "Type de lieu du fait (cambriolage / vol par effraction), déduit par l'agent. Valeurs : LOCAL_PRO, HABITATION, LIEU_PUBLIC, VEHICULE, INDETERMINE. Ex. boulangerie / pharmacie / SARL / tout nom en -erie -> LOCAL_PRO ; domicile -> HABITATION. Optionnel ; valeur hors liste ignorée. (Sans enum : le bridge openapi->MCP d'IAka échoue au démarrage sur un enum.)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "adresse",
+            "in": "query",
+            "required": false,
+            "description": "Adresse littérale du fait si présente (n°, rue). Optionnel ; ne pas inventer.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "urgent",
+            "in": "query",
+            "required": false,
+            "description": "Procédure urgente. Optionnel ; non précisé = false.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sensible",
+            "in": "query",
+            "required": false,
+            "description": "Procédure sensible. Optionnel ; non précisé = false.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "groupe",
+            "in": "query",
+            "required": false,
+            "description": "Libellé ou id de groupe, scopé à l'unité. Optionnel.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "annee",
+            "in": "query",
+            "required": false,
+            "description": "Optionnel ; défaut = année courante.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Procedure creee ; numero alloue.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Procedure"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/communes": {
+      "get": {
+        "tags": [
+          "Procedures"
+        ],
+        "summary": "Rechercher / résoudre une commune",
+        "description": "Typeahead commune, insensible aux accents. q numérique (4-5 chiffres) -> filtre code postal ou début de code INSEE ; sinon -> préfixe de nom. Sert à lever une ambiguïté avant création/modification.",
+        "operationId": "searchCommunes",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "Nom de commune (préfixe) ou code postal.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Segré"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Nombre max de résultats (défaut 20, max 100).",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Communes correspondantes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code_insee": {
+                            "type": "string"
+                          },
+                          "nom": {
+                            "type": "string"
+                          },
+                          "code_postal": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Jeton d'API en en-tête Authorization: Bearer <token>."
+      }
+    },
+    "parameters": {
+      "Una": {
+        "name": "una",
+        "in": "query",
+        "required": false,
+        "description": "UNA complète unite/numero/annee (découpée sur /).",
+        "schema": {
+          "type": "string",
+          "example": "15127/1/2026"
+        }
+      },
+      "Pv": {
+        "name": "pv",
+        "in": "query",
+        "required": false,
+        "description": "Alias de una.",
+        "schema": {
+          "type": "string",
+          "example": "15127/1/2026"
+        }
+      },
+      "NumeroQuery": {
+        "name": "numero",
+        "in": "query",
+        "required": false,
+        "description": "Soit l'UNA complète unite/numero/annee (si elle contient /), soit le numéro seul (à combiner avec unite et annee).\n",
+        "schema": {
+          "type": "string",
+          "example": "15127/1/2026"
+        }
+      },
+      "Unite": {
+        "name": "unite",
+        "in": "query",
+        "required": false,
+        "description": "Code unité (à combiner avec numero et annee).",
+        "schema": {
+          "type": "integer",
+          "example": 15127
+        }
+      },
+      "Annee": {
+        "name": "annee",
+        "in": "query",
+        "required": false,
+        "description": "Année (à combiner avec unite et numero).",
+        "schema": {
+          "type": "integer",
+          "example": 2026
+        }
+      },
+      "FilterType": {
+        "name": "type",
+        "in": "query",
+        "required": false,
+        "description": "Libellé (PVEJ, PVEJST, PVRA, PVRJ) ou id.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "FilterUnite": {
+        "name": "unite",
+        "in": "query",
+        "required": false,
+        "description": "Code unité.",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "FilterAnnee": {
+        "name": "annee",
+        "in": "query",
+        "required": false,
+        "description": "Année.",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "FilterGroupe": {
+        "name": "groupe",
+        "in": "query",
+        "required": false,
+        "description": "A / Groupe A / id.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "FilterUrgent": {
+        "name": "urgent",
+        "in": "query",
+        "required": false,
+        "description": "true ou false.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "FilterSensible": {
+        "name": "sensible",
+        "in": "query",
+        "required": false,
+        "description": "true ou false.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "FilterLimit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "description": "Nombre max (défaut 200).",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "FilterTypeLieu": {
+        "name": "type_lieu",
+        "in": "query",
+        "required": false,
+        "description": "Filtre par type de lieu du fait (table compagnon una_lieu). Valeurs : LOCAL_PRO, HABITATION, LIEU_PUBLIC, VEHICULE, INDETERMINE. Valeur hors liste ignorée. (Sans enum : le bridge openapi->MCP d'IAka échoue au démarrage sur un enum.)",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Requête invalide.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "bad_request": {
+                "value": {
+                  "error": {
+                    "code": "bad_request",
+                    "message": "Paramètres invalides."
+                  }
+                }
+              },
+              "type_inconnu": {
+                "value": {
+                  "error": {
+                    "code": "type_inconnu",
+                    "message": "Type de document inconnu."
+                  }
+                }
+              },
+              "unite_inconnue": {
+                "value": {
+                  "error": {
+                    "code": "unite_inconnue",
+                    "message": "Unité inconnue."
+                  }
+                }
+              },
+              "groupe_inconnu": {
+                "value": {
+                  "error": {
+                    "code": "groupe_inconnu",
+                    "message": "Groupe inconnu pour cette unité."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Jeton absent ou invalide.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "unauthorized",
+                "message": "Jeton manquant ou invalide."
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "UNA absente.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "not_found",
+                "message": "Procédure introuvable."
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Procedure": {
+        "type": "object",
+        "description": "Enregistrement de la table una, enrichi des libellés joints (unite_libelle, type_libelle, groupe_libelle).\n",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "unite": {
+            "type": "integer",
+            "description": "Code unité (FK unite.code).",
+            "example": 15127
+          },
+          "numero": {
+            "type": "integer",
+            "description": "Compteur par (unite, annee), repart à 1 chaque année.",
+            "example": 1
+          },
+          "annee": {
+            "type": "integer",
+            "example": 2026
+          },
+          "synthese": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type_document": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "FK type_document.id."
+          },
+          "nigend_de": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "urgent": {
+            "type": "boolean"
+          },
+          "sensible": {
+            "type": "boolean"
+          },
+          "groupe": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "FK groupe.id."
+          },
+          "date_limit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "date_submit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "unite_libelle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Communauté de brigades de Segré-en-Anjou Bleu"
+          },
+          "type_libelle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "PVEJ"
+          },
+          "groupe_libelle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "unite",
+          "numero",
+          "annee"
+        ]
+      },
+      "ProcedureCreate": {
+        "type": "object",
+        "required": [
+          "unite",
+          "type"
+        ],
+        "properties": {
+          "unite": {
+            "type": "integer",
+            "description": "Code unité.",
+            "example": 15127
+          },
+          "type": {
+            "description": "Libellé (ex. PVEJ) ou id du type de document.",
+            "oneOf": [
+              {
+                "type": "string",
+                "example": "PVEJ"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "synthese": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Synthèse / objet de la procédure (ex. « cambriolage »). Optionnel.",
+            "example": "cambriolage"
+          },
+          "commune": {
+            "type": "string",
+            "description": "Commune du fait : nom (ex. « Candé ») ou code INSEE. Résolue côté API. Optionnel.",
+            "example": "Candé"
+          },
+          "type_lieu": {
+            "type": "string",
+            "description": "Type de lieu du fait (cambriolage / vol par effraction), déduit par l'agent. Valeurs : LOCAL_PRO, HABITATION, LIEU_PUBLIC, VEHICULE, INDETERMINE. Ex. boulangerie / pharmacie / SARL / tout nom en -erie -> LOCAL_PRO ; domicile -> HABITATION. Optionnel ; valeur hors liste ignorée. (Sans enum : le bridge openapi->MCP d'IAka échoue au démarrage sur un enum.)",
+            "example": "LOCAL_PRO"
+          },
+          "adresse": {
+            "type": "string",
+            "description": "Adresse littérale du fait si présente (n°, rue). Optionnel ; ne pas inventer.",
+            "example": "12 rue des Lilas"
+          },
+          "urgent": {
+            "type": "boolean",
+            "default": false,
+            "description": "Procédure urgente. Optionnel ; non précisé = false."
+          },
+          "sensible": {
+            "type": "boolean",
+            "default": false,
+            "description": "Procédure sensible. Optionnel ; non précisé = false."
+          },
+          "groupe": {
+            "description": "Libellé ou id de groupe, scopé à l'unité. Optionnel.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "annee": {
+            "type": "integer",
+            "description": "Optionnel ; défaut = année courante.",
+            "example": 2026
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "bad_request",
+                  "type_inconnu",
+                  "unite_inconnue",
+                  "groupe_inconnu",
+                  "unauthorized",
+                  "not_found"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ProcedureUpdate": {
+        "type": "object",
+        "required": [
+          "una"
+        ],
+        "properties": {
+          "una": {
+            "type": "string",
+            "description": "UNA à modifier (unite/numero/annee). Identité non modifiable.",
+            "example": "15127/1/2026"
+          },
+          "synthese": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Nouvelle synthèse."
+          },
+          "type": {
+            "description": "Nouveau type. Libellé (ex. PVEJ) ou id.",
+            "oneOf": [
+              {
+                "type": "string",
+                "example": "PVEJ"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "groupe": {
+            "description": "Nouveau groupe. Libellé (A / Groupe A) ou id.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "urgent": {
+            "type": "boolean"
+          },
+          "sensible": {
+            "type": "boolean"
+          },
+          "nigend_de": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "date_limit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Date limite (ISO)."
+          },
+          "type_lieu": {
+            "type": "string",
+            "description": "(Ré)attribue le type de lieu du fait (table una_lieu). Valeurs : LOCAL_PRO, HABITATION, LIEU_PUBLIC, VEHICULE, INDETERMINE. Déduit par l'agent depuis la synthèse. Valeur hors liste ignorée. (Sans enum : le bridge openapi->MCP d'IAka échoue au démarrage sur un enum.)",
+            "example": "LIEU_PUBLIC"
+          },
+          "adresse": {
+            "type": "string",
+            "description": "(Ré)attribue l'adresse littérale du fait (table una_lieu). Optionnel ; ne pas inventer."
+          }
+        }
+      }
+    }
+  }
+}

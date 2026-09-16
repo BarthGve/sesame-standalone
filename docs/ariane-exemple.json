@@ -1,0 +1,50 @@
+{
+  "affaire": { "reference": "PV 2026/00457", "nature": "Vol avec effraction en réunion", "service": "BR Melun", "periode": { "debut": "2026-03-04", "fin": "2026-03-21" }, "nb_cotes": 14 },
+  "synthese": "## Synthèse\n\nDans la nuit du 4 mars 2026, le dépôt logistique de la société MERIDIA, rue des Frères-Lumière à Melun, est cambriolé après effraction du rideau métallique. Le préjudice porte sur du matériel électronique. L'exploitation de la vidéosurveillance et de la téléphonie conduit à l'interpellation de Jean DUPONT et Karim BENALI, mis en cause, le 18 mars. Les auditions établissent une action concertée ; une partie du matériel est retrouvée en perquisition au domicile de DUPONT.",
+  "parties": [
+    { "id": "p1", "nom": "Jean DUPONT", "role": "mis_en_cause", "aliases": ["M. Dupont", "le suspect"], "qualite": "né le 02/05/1990 à Melun, sans profession", "premiere_cote": "D3" },
+    { "id": "p2", "nom": "Karim BENALI", "role": "mis_en_cause", "aliases": ["le second individu"], "qualite": "né le 14/11/1988 à Meaux", "premiere_cote": "D3" },
+    { "id": "p3", "nom": "Société MERIDIA (représentée par Paul MOREAU)", "role": "victime", "aliases": ["la victime", "le plaignant"], "qualite": "gérant du dépôt", "premiere_cote": "D2" },
+    { "id": "p4", "nom": "Lucie FONTAINE", "role": "temoin", "aliases": [], "qualite": "riveraine", "premiere_cote": "D5" },
+    { "id": "p5", "nom": "Marc GIRARD", "role": "temoin", "aliases": [], "qualite": "vigile", "premiere_cote": "D6" },
+    { "id": "p6", "nom": "ADC Sophie MARTIN", "role": "enqueteur", "aliases": ["l'enquêteur"], "qualite": "BR Melun", "premiere_cote": "D1" },
+    { "id": "p7", "nom": "MDC Thomas PETIT", "role": "enqueteur", "aliases": [], "qualite": "BR Melun", "premiere_cote": "D4" },
+    { "id": "p8", "nom": "Mme le Procureur de Melun", "role": "magistrat", "aliases": ["le parquet"], "qualite": "TJ Melun", "premiere_cote": "D1" }
+  ],
+  "evenements": [
+    { "id": "e1", "date": "2026-03-04", "precision": "jour", "libelle": "Effraction du rideau métallique du dépôt MERIDIA", "cote_source": "D2", "parties": ["p1", "p2"] },
+    { "id": "e2", "date": "2026-03-04", "precision": "heure", "libelle": "Deux individus filmés chargeant des cartons dans une camionnette", "cote_source": "D7", "parties": ["p1", "p2"] },
+    { "id": "e3", "date": "2026-03-04", "precision": "jour", "libelle": "Découverte du vol par le gérant à l'ouverture", "cote_source": "D2", "parties": ["p3"] },
+    { "id": "e4", "date": "2026-03-05", "precision": "jour", "libelle": "Témoignage d'une riveraine ayant entendu un véhicule vers 3h", "cote_source": "D5", "parties": ["p4"] },
+    { "id": "e5", "date": "2026-03-10", "precision": "jour", "libelle": "Exploitation téléphonie : bornage compatible des deux lignes", "cote_source": "D9", "parties": ["p1", "p2"] },
+    { "id": "e6", "date": "2026-03-18", "precision": "jour", "libelle": "Interpellation des deux mis en cause", "cote_source": "D10", "parties": ["p1", "p2"] },
+    { "id": "e7", "date": "2026-03-18", "precision": "jour", "libelle": "Perquisition au domicile de DUPONT, matériel retrouvé", "cote_source": "D11", "parties": ["p1"] },
+    { "id": "e8", "date": "2026-03-19", "precision": "jour", "libelle": "DUPONT reconnaît partiellement les faits", "cote_source": "D12", "parties": ["p1"] },
+    { "id": "e9", "date": "2026-03-19", "precision": "jour", "libelle": "BENALI conteste toute implication", "cote_source": "D13", "parties": ["p2"] },
+    { "id": "e10", "date": "2026-03-04", "precision": "jour", "libelle": "Le vigile signale une ronde sans anomalie à 1h", "cote_source": "D6", "parties": ["p5"] }
+  ],
+  "actes": [
+    { "id": "a1", "date": "2026-03-04", "type": "soit_transmis", "cote": "D1", "libelle": "Soit-transmis du parquet, saisine BR Melun", "redacteur": null, "concernes": ["p8"] },
+    { "id": "a2", "date": "2026-03-04", "type": "constatation", "cote": "D2", "libelle": "PV de constatations sur les lieux", "redacteur": "p6", "concernes": ["p3"] },
+    { "id": "a3", "date": "2026-03-04", "type": "audition", "cote": "D3", "libelle": "Audition du plaignant", "redacteur": "p6", "concernes": ["p3"] },
+    { "id": "a4", "date": "2026-03-05", "type": "audition", "cote": "D5", "libelle": "Audition témoin FONTAINE", "redacteur": "p7", "concernes": ["p4"] },
+    { "id": "a5", "date": "2026-03-05", "type": "audition", "cote": "D6", "libelle": "Audition vigile GIRARD", "redacteur": "p7", "concernes": ["p5"] },
+    { "id": "a6", "date": "2026-03-06", "type": "constatation", "cote": "D7", "libelle": "Exploitation de la vidéosurveillance", "redacteur": "p6", "concernes": [] },
+    { "id": "a7", "date": "2026-03-09", "type": "requisition", "cote": "D9", "libelle": "Réquisition opérateur téléphonique", "redacteur": "p6", "concernes": ["p1", "p2"] },
+    { "id": "a8", "date": "2026-03-18", "type": "gav", "cote": "D10", "libelle": "Placement en garde à vue des deux mis en cause", "redacteur": "p6", "concernes": ["p1", "p2"] },
+    { "id": "a9", "date": "2026-03-18", "type": "perquisition", "cote": "D11", "libelle": "Perquisition domicile DUPONT", "redacteur": "p7", "concernes": ["p1"] },
+    { "id": "a10", "date": "2026-03-19", "type": "audition", "cote": "D12", "libelle": "Audition en GAV de DUPONT", "redacteur": "p6", "concernes": ["p1"] },
+    { "id": "a11", "date": "2026-03-19", "type": "audition", "cote": "D13", "libelle": "Audition en GAV de BENALI", "redacteur": "p7", "concernes": ["p2"] },
+    { "id": "a12", "date": "2026-03-21", "type": "soit_transmis", "cote": "D14", "libelle": "PV de synthèse et compte rendu au parquet", "redacteur": "p6", "concernes": ["p8"] }
+  ],
+  "relations": [
+    { "source": "p1", "cible": "p2", "type": "complice", "libelle": "auraient agi ensemble", "cotes": ["D7", "D12"] },
+    { "source": "p3", "cible": "p1", "type": "victime_de", "libelle": "victime du vol commis par", "cotes": ["D2", "D12"] },
+    { "source": "p3", "cible": "p2", "type": "victime_de", "libelle": "victime du vol commis par", "cotes": ["D2"] },
+    { "source": "p3", "cible": "p6", "type": "entendu_par", "libelle": "entendu par", "cotes": ["D3"] },
+    { "source": "p4", "cible": "p7", "type": "entendu_par", "libelle": "entendu par", "cotes": ["D5"] },
+    { "source": "p5", "cible": "p7", "type": "entendu_par", "libelle": "entendu par", "cotes": ["D6"] },
+    { "source": "p1", "cible": "p6", "type": "entendu_par", "libelle": "entendu par", "cotes": ["D12"] },
+    { "source": "p2", "cible": "p7", "type": "entendu_par", "libelle": "entendu par", "cotes": ["D13"] }
+  ]
+}

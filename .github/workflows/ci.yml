@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Lint (oxlint)
+        run: npm run lint
+      - name: Typecheck
+        run: npx tsc -b
+      - name: Tests front (Vitest)
+        run: npm test
+      - name: Tests BFF (node --test)
+        run: npm run test:bff
+      # Microservices : tests purs (query builders, faux pool) — pas de npm ci
+      # dans rens/cote. rgp-api a des deps (pg, minio) déjà présentes en dev local ;
+      # en CI on n'installe que si package-lock du sous-dossier existe.
+      - name: Tests rens-api
+        run: npm run test:rens
+      - name: Tests rgp-api
+        run: npm run test:rgp
+      - name: Tests cote-api
+        run: npm run test:cote
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (sans push)
+        run: docker build -t sesame-standalone:ci .

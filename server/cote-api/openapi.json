@@ -1,0 +1,256 @@
+{
+ "openapi": "3.0.3",
+ "info": {
+  "title": "Cote véhicules d'occasion (simulée)",
+  "version": "1.0.0",
+  "description": "API de cote automobile SIMULÉE, pour démonstration. Les prix et les annonces sont engendrés par un modèle de décote, ils ne proviennent d'aucun marché réel et n'ont aucune valeur contractuelle.\nEnveloppe de réponse uniforme : succès { \"data\": ... }, erreur { \"error\": { \"code\": \"...\", \"message\": \"...\" } }.\n"
+ },
+ "servers": [
+  {
+   "url": "http://localhost:8082",
+   "description": "Standalone — conteneur interne cote-api:8082 (même schéma que rgp-api et rens-api)."
+  }
+ ],
+ "security": [
+  {
+   "bearerAuth": []
+  }
+ ],
+ "tags": [
+  {
+   "name": "Cote",
+   "description": "Estimation de valeur d'un véhicule terrestre"
+  }
+ ],
+ "paths": {
+  "/cote": {
+   "get": {
+    "tags": [
+     "Cote"
+    ],
+    "summary": "Estimer la valeur d'un véhicule terrestre",
+    "description": "Renvoie une fourchette de prix et des annonces comparables pour un véhicule décrit par sa marque, son modèle et son année de première mise en circulation.\nLe champ `correspondance` indique la qualité de l'identification : si sa valeur est `repli_segment`, aucun modèle n'a été reconnu et le prix ne vaut que pour le segment — il est alors utile de retenter avec une écriture normalisée de la marque et du modèle (par exemple « VW » → « VOLKSWAGEN », « Golf VII » → « GOLF »).\n",
+    "operationId": "getCote",
+    "parameters": [
+     {
+      "name": "marque",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string"
+      },
+      "description": "Marque du véhicule, par exemple VOLKSWAGEN. La casse et les accents sont sans importance.",
+      "example": "VOLKSWAGEN"
+     },
+     {
+      "name": "modele",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string"
+      },
+      "description": "Modèle du véhicule, par exemple SCIROCCO. Une version détaillée (« SCIROCCO 2.0 TSI ») est acceptée et reconnue comme approchante.",
+      "example": "SCIROCCO"
+     },
+     {
+      "name": "annee",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer"
+      },
+      "description": "Année de première mise en circulation, à quatre chiffres (comprise entre 1900 et 2100). Absente, non numérique ou hors de cette plage : erreur 400. Une année dans la plage mais peu plausible (trop ancienne ou future) ne provoque pas d'erreur : un âge par défaut est supposé, et l'hypothèse est signalée dans le champ methode de la réponse.",
+      "example": 2016
+     },
+     {
+      "name": "km",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer"
+      },
+      "description": "Kilométrage. S'il est absent (ou nul), un usage moyen est supposé et l'hypothèse est indiquée dans le champ methode.",
+      "example": 120000
+     },
+     {
+      "name": "carrosserie",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string"
+      },
+      "description": "Type de carrosserie. N'a d'effet que lorsqu'aucun modèle n'est reconnu (`correspondance` = `repli_segment`) : elle oriente alors le segment de repli, et donc le prix de segment retenu. Sans effet quand le modèle est reconnu (exacte ou approchante). Une carrosserie absente ou non reconnue laisse le repli par défaut, sur le segment COMPACTE.",
+      "example": "COUPE"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Cote estimée",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "data": {
+           "$ref": "#/components/schemas/Cote"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Paramètre manquant ou invalide",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Erreur"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Jeton absent ou invalide",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Erreur"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/health": {
+   "get": {
+    "tags": [
+     "Cote"
+    ],
+    "summary": "État du service",
+    "operationId": "getHealth",
+    "security": [],
+    "responses": {
+     "200": {
+      "description": "Service disponible"
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "securitySchemes": {
+   "bearerAuth": {
+    "type": "http",
+    "scheme": "bearer"
+   }
+  },
+  "schemas": {
+   "Cote": {
+    "type": "object",
+    "properties": {
+     "reference": {
+      "type": "object",
+      "description": "Paramètres retenus après normalisation (marque et modèle mis en majuscules sans accent ; annee et km sont les valeurs effectivement utilisées pour le calcul, qu'elles proviennent de la requête ou d'une hypothèse par défaut).",
+      "properties": {
+       "marque": {
+        "type": "string"
+       },
+       "modele": {
+        "type": "string"
+       },
+       "annee": {
+        "type": "integer"
+       },
+       "km": {
+        "type": "integer"
+       },
+       "segment": {
+        "type": "string"
+       }
+      }
+     },
+     "fourchette": {
+      "type": "object",
+      "description": "Fourchette de valeur estimée.",
+      "properties": {
+       "bas": {
+        "type": "number"
+       },
+       "moyen": {
+        "type": "number"
+       },
+       "haut": {
+        "type": "number"
+       },
+       "devise": {
+        "type": "string",
+        "example": "EUR"
+       }
+      }
+     },
+     "annonces": {
+      "type": "array",
+      "description": "Annonces comparables simulées, cohérentes avec la fourchette.",
+      "items": {
+       "type": "object",
+       "properties": {
+        "titre": {
+         "type": "string"
+        },
+        "annee": {
+         "type": "integer"
+        },
+        "km": {
+         "type": "integer"
+        },
+        "prix": {
+         "type": "number"
+        },
+        "lieu": {
+         "type": "string"
+        },
+        "url": {
+         "type": "string"
+        }
+       }
+      }
+     },
+     "correspondance": {
+      "type": "string",
+      "enum": [
+       "exacte",
+       "approchante",
+       "repli_segment"
+      ],
+      "description": "Qualité de l'identification du modèle. `exacte` : modèle trouvé au catalogue. `approchante` : modèle voisin retenu (préfixe reconnu, par exemple une version détaillée). `repli_segment` : aucun modèle reconnu, prix de segment seulement — il est alors pertinent de retenter la requête avec une marque et un modèle reformulés (nom normalisé, sans mention de finition)."
+     },
+     "methode": {
+      "type": "string",
+      "description": "Méthode de calcul et hypothèses retenues (âge supposé si l'année est absente ou peu plausible, kilométrage supposé si absent)."
+     },
+     "avertissement": {
+      "type": "string",
+      "description": "Rappel que la source est simulée et non contractuelle."
+     }
+    }
+   },
+   "Erreur": {
+    "type": "object",
+    "properties": {
+     "error": {
+      "type": "object",
+      "properties": {
+       "code": {
+        "type": "string"
+       },
+       "message": {
+        "type": "string"
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

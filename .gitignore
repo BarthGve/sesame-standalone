@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+src/cunningham-tokens.css
+.superpowers/
+src/fixtures/demo.geojson
+
+.DS_Store
+.claude/
+*.mov

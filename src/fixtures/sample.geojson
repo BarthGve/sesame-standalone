@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "meta": { "titre": "Échantillon", "question": "test", "count": 2 },
+  "features": [
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [3.33267, 45.696232] },
+      "properties": { "commune": "AURILLAC", "categorie": "découverte - cadavre", "date": "2026-05-16", "resume": "…", "unite": "BTA X" } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-4.763028, 48.482431] },
+      "properties": { "commune": "PORSPODER", "categorie": "suicide", "date": "2026-06-15", "resume": "…", "unite": "BP Y" } }
+  ]
+}

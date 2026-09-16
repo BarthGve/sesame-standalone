@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><Procedure CASSIOPEE="PREPRODUCTION" FOVES="PREPRODUCTION" FRAIJUS="PREPRODUCTION" MIJ="PREPRODUCTION" PULSAR="PREPRODUCTION" TPJ="PREPRODUCTION" Titre_Piece="04340_00059_2025__ENQUÊTE PRÉLIMINAIRE_PROCÈS-VERBAL D&amp;apos;AUDITION__Marc_BIDULE">
+    <Infos><Arborescence_LRPGN>|PROC_PEN|EP|AUD|AUD_PERS|</Arborescence_LRPGN><Nom_Enregistrement>AUDITION_MARC_BIDULE</Nom_Enregistrement><Vs_LRPGN>v3720313</Vs_LRPGN></Infos>
+    <Enqueteurs>
+        <Enqueteur>
+            <Enqueteur_Nom>Adjudant Julie MALLIETTE</Enqueteur_Nom>
+            <Enqueteur_Residence>LE LION D ANGERS</Enqueteur_Residence>
+            <Enqueteur_Qualite>Officier de Police Judiciaire</Enqueteur_Qualite>
+        </Enqueteur>
+        <Enqueteur>
+            <Enqueteur_Article>16 à 19 et 75 à 78 du Code de Procédure Pénale.</Enqueteur_Article>
+        </Enqueteur>
+    </Enqueteurs>
+    <Entete>
+        <Code_Unite>04340</Code_Unite>
+        <Piece_Feuillet>1/ 2</Piece_Feuillet>
+        <Anonymisation>false</Anonymisation>
+        <Institution>GENDARMERIE NATIONALE</Institution>
+        <Enquete_Type>ENQUÊTE PRÉLIMINAIRE</Enquete_Type>
+        <Piece_Titre>PROCÈS-VERBAL D&amp;apos;AUDITION</Piece_Titre>
+        <unaRGP>false</unaRGP>
+        <Unite_L1>Compagnie de gendarmerie départementale de Segré-en-Anjou-Bleu</Unite_L1>
+        <Procedure_Numero>00059</Procedure_Numero>
+        <Unite_L4>COB LE-LION-D-ANGERS</Unite_L4>
+        <Vpn_Up>false</Vpn_Up>
+        <Procedure_Annee>2025</Procedure_Annee>
+    </Entete>
+    <Faits>
+        <Fait>
+            <Code_Postal_Commune_Fait>91200</Code_Postal_Commune_Fait>
+            <Localisation_Fait>Rue des Plantes</Localisation_Fait>
+            <Natinf>10832</Natinf>
+            <Periode_Affaire_Fin utc="2025-02-21T13:47Z[UTC]">21/02/2025 à 14:47</Periode_Affaire_Fin>
+            <Periode_Affaire_Debut utc="2025-02-20T13:47Z[UTC]">20/02/2025 à 14:47</Periode_Affaire_Debut>
+            <Nature_Lieu_Fait id="672" ref="natures_lieux">VOIE COMMUNALE</Nature_Lieu_Fait>
+            <Fait_Tentative>NON</Fait_Tentative>
+            <Commune_Fait>ATHIS MONS</Commune_Fait>
+            <Pays_Fait id="99160" ref="pays">France</Pays_Fait>
+            <Libelle_Fait>VOL EN BANDE ORGANISEE</Libelle_Fait>
+            <Code_Insee_Commune_Fait>91027</Code_Insee_Commune_Fait>
+            <Fait_Complicite>NON</Fait_Complicite>
+            <Fait_Recidive>NON</Fait_Recidive>
+            <Fait_GpsX>2.376761</Fait_GpsX>
+            <Fait_GpsY>48.704229</Fait_GpsY>
+        </Fait>
+    </Faits>
+    <Personnes>
+        <Personnes_Physiques>
+            <Personne>
+                <Consentement>
+                    <CONS>non</CONS>
+                    <CONS_Adresse_Mail/>
+                    <CONS_Tel_Mobile>+33600000000</CONS_Tel_Mobile>
+                    <CONS_Personne_Liee_Id>33640</CONS_Personne_Liee_Id>
+                </Consentement>
+                <Personne_Nationalite codeiso="FR" id="99160" ref="nationalites">FRANÇAISE</Personne_Nationalite>
+                <Personne_Naissance_Lieu>LORIGNE</Personne_Naissance_Lieu>
+                <Personne_Adresse>Rue des Acacias</Personne_Adresse>
+                <Personne_Prenom>Marc</Personne_Prenom>
+                <Personne_Pays_Residence id="99160" ref="pays">France</Personne_Pays_Residence>
+                <Personne_Naissance_Date>21/02/1985</Personne_Naissance_Date>
+                <Personne_Commune_Residence>TOURCOING</Personne_Commune_Residence>
+                <Personne_Implication>VICTIME</Personne_Implication>
+                <Personne_Situation_Familiale>Marié(e)</Personne_Situation_Familiale>
+                <Personne_Profession id="00730" ref="professions">ACTEUR</Personne_Profession>
+                <Personne_Pays_Naissance id="99160" ref="pays">France</Personne_Pays_Naissance>
+                <Personne_Nature_Etat_Civil>Epoux</Personne_Nature_Etat_Civil>
+                <Personne_Civilite_Sexe>M</Personne_Civilite_Sexe>
+                <Personne_Nom>BIDULE</Personne_Nom>
+                <Personne_Telephone_Portable>06.00.00.00.00</Personne_Telephone_Portable>
+                <Personne_CP_Commune_Residence>59200</Personne_CP_Commune_Residence>
+                <Personne_Validite_Etat_Civil>Identité déclarée</Personne_Validite_Etat_Civil>
+                <Personne_CP_Commune_Naissance>79190</Personne_CP_Commune_Naissance>
+                <Personne_Id>33640</Personne_Id>
+                <Personne_Insee_Lieu_Res>59599</Personne_Insee_Lieu_Res>
+                <Personne_Insee_Lieu_Naiss>79152</Personne_Insee_Lieu_Naiss>
+            </Personne>
+        </Personnes_Physiques>
+    </Personnes>
+    <Redaction_Proces_Verbal>
+        <Acte_Enquete_Heure>14 heures 45 minutes</Acte_Enquete_Heure>
+        <Circonscription id="1" ref="lieux_redaction">au bureau de notre unité</Circonscription>
+        <Commune_Redaction id="78361" ref="communes">MANTES LA JOLIE 78200</Commune_Redaction>
+        <Acte_Enquete_Date utc="2025-02-20T23:00Z[UTC]">vendredi 21 février 2025</Acte_Enquete_Date>
+    </Redaction_Proces_Verbal>
+</Procedure>

@@ -1,0 +1,52 @@
+{
+  "name": "sesame-standalone",
+  "private": true,
+  "version": "0.6.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "build-theme": "cunningham -g css -o src",
+    "lint": "oxlint src server --ignore-pattern '**/node_modules/**'",
+    "test": "vitest run",
+    "test:bff": "node --test server/*.test.mjs",
+    "test:rgp": "npm test --prefix server/rgp-api",
+    "test:rens": "npm test --prefix server/rens-api",
+    "test:cote": "npm test --prefix server/cote-api",
+    "test:all": "npm test && npm run test:bff && npm run test:rens && npm run test:rgp && npm run test:cote",
+    "proxy": "node --env-file=.env server/proxy.mjs",
+    "dev:all": "node --env-file=.env server/proxy.mjs & vite"
+  },
+  "dependencies": {
+    "@fontsource/material-icons": "^5.2.5",
+    "@gouvfr-lasuite/cunningham-react": "^4.3.1",
+    "@gouvfr-lasuite/integration": "^1.0.3",
+    "@gouvfr-lasuite/ui-kit": "^0.26.0",
+    "@tiptap/pm": "^3.28.0",
+    "@tiptap/react": "^3.28.0",
+    "@tiptap/starter-kit": "^3.28.0",
+    "@types/pdfmake": "^0.3.3",
+    "maplibre-gl": "^5.24.0",
+    "pdfmake": "^0.3.11",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-force-graph-2d": "^1.29.1",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.18.1",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "jsdom": "^29.1.1",
+    "oxlint": "^1.71.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vitest": "^4.1.9"
+  }
+}

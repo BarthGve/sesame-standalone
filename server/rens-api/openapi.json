@@ -1,0 +1,106 @@
+{
+ "openapi": "3.1.0",
+ "info": { "title": "RENS Lookup API (FRS)", "version": "1.0.0",
+   "description": "Consultation read-only des fiches de renseignement simplifiées (FRS). Enveloppe: succès { data }, erreur { error: { code, message } }." },
+ "servers": [{ "url": "http://localhost:8081", "description": "Production" }],
+ "security": [{ "bearerAuth": [] }],
+ "paths": {
+  "/fiches": {
+   "get": {
+    "operationId": "listFiches",
+    "summary": "Lister les FRS (filtres : date exacte OU période from/to, ggd, commune, q, limit). Pour un mois/une semaine, utiliser from et to. Chaque fiche renvoie titre, date, unite, code_ggd, departement, commune, texte et mots_cles.",
+    "parameters": [
+     { "name": "date", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "Jour exact YYYY-MM-DD" },
+     { "name": "from", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "Début de période inclusif YYYY-MM-DD (pour un mois/une semaine ; ex. mai = from 2026-05-01)" },
+     { "name": "to", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "Fin de période inclusif YYYY-MM-DD (ex. mai = to 2026-05-31)" },
+     { "name": "ggd", "in": "query", "schema": { "type": "string" }, "description": "Code GGD exact, ex. 'GGD 49'" },
+     { "name": "commune", "in": "query", "schema": { "type": "string" }, "description": "Commune où le renseignement a été relevé (recherche partielle, ex. 'Cholet')" },
+     { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Recherche titre/texte/mot-clé" },
+     { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 100, "maximum": 500 } }
+    ],
+    "responses": { "200": { "description": "Liste de fiches" } }
+   }
+  },
+  "/fiches/{id}": {
+   "get": {
+    "operationId": "getFiche",
+    "summary": "Détail d'une FRS",
+    "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+    "responses": { "200": { "description": "Fiche" }, "404": { "description": "Introuvable" } }
+   }
+  },
+  "/agregats": {
+   "get": {
+    "operationId": "agregatsJour",
+    "summary": "Panorama agrégé d'un jour (synthèse quotidienne)",
+    "description": "Renvoie UN objet JSON compact entièrement calculé par la base (scalable à 1000+ fiches/jour, l'agent n'a jamais à lire les fiches brutes) : { date, total, total_veille, top_mots:[{mot,n}] (top 12 mots-clés du jour), par_ggd:[{code_ggd,n}], top_communes:[{commune,n}] (top 10) }. À utiliser comme bloc (A) de la synthèse quotidienne. Sans paramètre 'date', synthétise automatiquement le DERNIER jour présent en base.",
+    "parameters": [
+     { "name": "date", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "Jour à synthétiser (YYYY-MM-DD). Optionnel : par défaut = dernier jour de la base." }
+    ],
+    "responses": { "200": { "description": "Panorama du jour (ou du dernier jour si date omise)" }, "400": { "description": "date invalide" } }
+   }
+  },
+  "/audit/rapport": {
+   "get": {
+    "operationId": "auditRapport",
+    "summary": "Rapport d'audit qualité GIPASP d'un jour (run nocturne). Sans 'jour', renvoie le dernier run.",
+    "parameters": [
+     { "name": "jour", "in": "query", "schema": { "type": "string", "format": "date" } },
+     { "name": "ggd", "in": "query", "schema": { "type": "string" } }
+    ],
+    "responses": { "200": { "description": "Rapport" }, "404": { "description": "Aucun audit pour ce jour" } }
+   }
+  },
+  "/audit/lot": {
+   "get": {
+    "operationId": "auditLot",
+    "summary": "Fiches d'une sélection (1 à 20) et écarts déterministes calculés sur cette sélection, pour une analyse à la demande.",
+    "parameters": [
+     { "name": "frs_ids", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Identifiants séparés par des virgules, 20 au maximum" }
+    ],
+    "responses": { "200": { "description": "Lot et écarts structurels" }, "400": { "description": "Sélection vide ou trop grande" } }
+   }
+  },
+  "/audit/fiche": {
+   "get": {
+    "operationId": "auditFiche",
+    "summary": "Détail d'une fiche auditée : texte intégral et écarts avec leur fondement.",
+    "parameters": [
+     { "name": "jour", "in": "query", "required": true, "schema": { "type": "string", "format": "date" } },
+     { "name": "frs_id", "in": "query", "required": true, "schema": { "type": "integer" } }
+    ],
+    "responses": { "200": { "description": "Fiche et écarts" }, "404": { "description": "Introuvable" } }
+   }
+  },
+  "/signaux": {
+   "get": {
+    "operationId": "signaux",
+    "summary": "Signaux faibles sur une fenêtre glissante (avec émergence)",
+    "description": "Agrège les mots-clés sur une fenêtre de `window` jours finissant à `date` (défaut : dernier jour de la base). Renvoie les phénomènes RARES-MAIS-DISPERSÉS : par mot-clé { mot, n (nb fiches), depts, communes, jours (nb de jours distincts), debut, fin, emergent (true si la majorité des occurrences est dans les `recent` derniers jours → en hausse) }. Seuils min/max/depts = paramètres d'échelle (monter min/max pour une forte volumétrie). À utiliser comme bloc (B) de la synthèse quotidienne. Le marqueur technique interne est exclu.",
+    "parameters": [
+     { "name": "date", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "Fin de fenêtre (défaut : dernier jour disponible)" },
+     { "name": "window", "in": "query", "schema": { "type": "integer", "default": 30 }, "description": "Largeur de la fenêtre en jours (défaut 30)" },
+     { "name": "recent", "in": "query", "schema": { "type": "integer", "default": 7 }, "description": "Fenêtre récente pour le flag émergent, en jours (défaut 7)" },
+     { "name": "min", "in": "query", "schema": { "type": "integer", "default": 5 }, "description": "Nombre minimum de fiches par mot-clé (défaut 5)" },
+     { "name": "max", "in": "query", "schema": { "type": "integer", "default": 20 }, "description": "Nombre maximum de fiches par mot-clé — au-delà = thème de fond (défaut 20 ; monter à forte volumétrie)" },
+     { "name": "depts", "in": "query", "schema": { "type": "integer", "default": 3 }, "description": "Nombre minimum de départements distincts (défaut 3)" }
+    ],
+    "responses": { "200": { "description": "Signaux faibles de la fenêtre" } }
+   }
+  },
+  "/signaux-faibles": {
+   "get": {
+    "operationId": "signauxFaibles",
+    "summary": "Découvrir les signaux faibles (agrégation)",
+    "description": "Regroupe les fiches par mot-clé et ne renvoie que les phénomènes RARES-MAIS-DISPERSÉS (mineurs pris isolément, mais récurrents sur plusieurs départements et dans le temps) : chaque ligne = un mot-clé avec n (nombre de fiches), depts (nombre de départements distincts), debut/fin (fenêtre temporelle) et ggds (liste). Les thèmes de fond très fréquents sont écartés par la borne haute. À utiliser pour 'faire émerger des signaux faibles' ou détecter des tendances sur plusieurs semaines/mois ; ensuite consulter /fiches?q=<mot> pour lire les fiches d'un signal (drill-in).",
+    "parameters": [
+     { "name": "min", "in": "query", "schema": { "type": "integer", "default": 5 }, "description": "Nombre minimum de fiches par mot-clé (défaut 5)" },
+     { "name": "max", "in": "query", "schema": { "type": "integer", "default": 20 }, "description": "Nombre maximum de fiches par mot-clé — au-delà c'est un thème de fond (défaut 20)" },
+     { "name": "depts", "in": "query", "schema": { "type": "integer", "default": 3 }, "description": "Nombre minimum de départements distincts touchés (défaut 3)" }
+    ],
+    "responses": { "200": { "description": "Signaux faibles (une ligne par mot-clé)" } }
+   }
+  }
+ },
+ "components": { "securitySchemes": { "bearerAuth": { "type": "http", "scheme": "bearer" } } }
+}

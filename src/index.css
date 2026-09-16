@@ -1,0 +1,138 @@
+@import "@gouvfr-lasuite/ui-kit/style";
+@import "@gouvfr-lasuite/ui-kit/fonts/Marianne";
+@import "@fontsource/material-icons";
+@import "./cunningham-tokens.css";
+@import "@gouvfr-lasuite/integration/dist/css/gaufre.css";
+/* Page d'accueil LaSuite : styles DSFR scopés sous `.lasuite` (pas de fuite globale). */
+@import "@gouvfr-lasuite/integration/dist/css/homepage-full.css";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/* ui-kit met la font Material Icons seulement sur .icon--filled.
+   Le burger du header (.material-icons sans .icon--filled) affichait
+   donc le texte "menu". On force la font + les ligatures sur la classe de base. */
+.material-icons {
+  font-family: "Material Icons", sans-serif;
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
+  line-height: 1;
+}
+
+/* Page d'accueil : le conteneur du bloc marque est en width:fit-content +
+   overflow:hidden, ce qui rogne le libellé du ministère ("MINISTÈRE DE /
+   ET DES OUTRE-"). On le laisse prendre sa largeur naturelle. */
+.lasuite .lasuite-header__brand-top {
+  width: auto;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+/* Page d'accueil : photo de la DGGN sous le filtre de couleur bleu/rouge.
+   Le gradient reste en premier plan (il est semi-transparent), la photo passe
+   derrière dans la même pile de background-image. */
+.lasuite .lasuite-homepage__wrapper {
+  background-image: linear-gradient(135deg, #00009199, #e1000f99),
+    url("/dggn.png");
+  background-position: center center;
+  background-size: cover;
+}
+
+/* Police Spectral (serif) utilisée par la page Accueil (sous-titre + numéros). */
+@font-face {
+  font-family: "Spectral";
+  src: url("/fonts/Spectral-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Spectral";
+  src: url("/fonts/Spectral-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+html, body, #root { height: 100%; margin: 0; }
+
+/* Landing (.lasuite) : la règle DSFR générique `button:not(:disabled):hover`
+   (spécificité 0,2,1) de homepage-full.css écrase le hover du bouton Cunningham
+   (0,2,0), donnant au bouton « Entrer » une couleur de survol différente des
+   autres pages. On restaure le hover Cunningham par défaut (brand / primary). */
+.lasuite .c__button--brand--primary:not(:disabled):hover {
+  background-color: var(--c--contextuals--background--semantic--brand--primary-hover);
+}
+
+/* Éditeur de proposition (tiptap / ProseMirror) */
+.proposition-editor .ProseMirror {
+  min-height: 320px;
+  padding: 1.5rem;
+  outline: none;
+  line-height: 1.5;
+}
+.proposition-editor .ProseMirror:focus { outline: none; }
+.proposition-editor .ProseMirror > :first-child { margin-top: 0; }
+.proposition-editor .ProseMirror h2 { font-size: 1.15rem; color: #000091; margin: 1.2em 0 0.4em; }
+.proposition-editor .ProseMirror h3 { font-size: 1rem; margin: 1em 0 0.3em; }
+.proposition-editor .ProseMirror p { margin: 0 0 0.6em; }
+.proposition-editor .ProseMirror ul,
+.proposition-editor .ProseMirror ol { margin: 0 0 0.6em; padding-left: 1.4em; }
+.proposition-editor .ProseMirror li { margin: 0.15em 0; }
+
+/* Conteneur main (slot children de MainLayout) : scrollbar masquée,
+   comme le <main> de lagarde (scrollbar-hidden). */
+.main-layout__content__center__children { scrollbar-width: none; }
+.main-layout__content__center__children::-webkit-scrollbar { display: none; }
+
+/* Reproduction du `container mx-auto` Tailwind de lagarde : contenu centré,
+   largeur plafonnée par paliers de breakpoint (jamais étendu plein écran). */
+.app-container {
+  width: 100%;
+  margin-inline: auto;
+}
+@media (min-width: 640px)  { .app-container { max-width: 640px; } }
+@media (min-width: 768px)  { .app-container { max-width: 768px; } }
+@media (min-width: 1024px) { .app-container { max-width: 1024px; } }
+@media (min-width: 1280px) { .app-container { max-width: 1280px; } }
+@media (min-width: 1536px) { .app-container { max-width: 1536px; } }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Indicateur de saisie (bulle façon iMessage/WhatsApp) : trois points qui
+   rebondissent tour à tour pendant l'attente de la réponse de l'assistant.
+   Préfixe `rgp-` historique : ces classes servent maintenant à toutes les
+   conversations (cf. src/lib/chat/Bulle.tsx) ainsi qu'à la page RENS. */
+.rgp-typing { display: inline-flex; align-items: center; gap: 4px; }
+.rgp-typing span {
+  width: 7px; height: 7px; border-radius: 50%; background: #8a8a99;
+  animation: rgp-typing-bounce 1.3s infinite ease-in-out;
+}
+.rgp-typing span:nth-child(2) { animation-delay: 0.15s; }
+.rgp-typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes rgp-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Engrenages de construction : deux roues Material Icons qui tournent en sens
+   inverse pendant la génération d'une synthèse (page RENS). Purement décoratif. */
+.rens-gears { position: relative; width: 96px; height: 72px; }
+.rens-gears .material-icons { position: absolute; color: #000091; }
+.rens-gears .gear-a { font-size: 56px; top: 0; left: 0; animation: rens-gear-spin 3.2s linear infinite; }
+.rens-gears .gear-b { font-size: 40px; bottom: 0; right: 0; animation: rens-gear-spin 2.4s linear infinite reverse; }
+@keyframes rens-gear-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Pastille d'état d'une page dans le menu (orange = en cours) : pulsation douce pour
+   signaler qu'un traitement tourne. Vert/rouge (terminé/échec) restent fixes. */
+@keyframes nav-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .nav-dot-running { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  .rens-gears .gear-a, .rens-gears .gear-b { animation: none; }
+}
+
+/* Barre d'actions d'une bulle : masquée, révélée au survol / focus clavier du message. */
+.rgp-msg-actions { opacity: 0; transition: opacity 0.15s ease; }
+.rgp-msg:hover .rgp-msg-actions,
+.rgp-msg:focus-within .rgp-msg-actions { opacity: 1; }
+.rgp-msg-actions button:hover { background: var(--c--globals--colors--gray-100, #f0f0f4); color: #1a1a1a; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
