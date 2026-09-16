@@ -21,6 +21,9 @@ function renderApp() {
 test("la route / affiche la page d'accueil", () => {
   render(<App />);
   expect(screen.getByRole("button", { name: /^Entrer$/i })).toBeInTheDocument();
+  expect(document.documentElement.innerHTML).not.toMatch(
+    /lasuite\.numerique|lagaufre/i
+  );
 });
 
 test("le bouton Entrer amène sur /app/accueil", () => {

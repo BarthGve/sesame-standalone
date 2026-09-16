@@ -1,6 +1,4 @@
-// Autocomplétion d'adresse via la Base Adresse Nationale (BAN),
-// API souveraine data.gouv.fr — https://api-adresse.data.gouv.fr
-// CORS ouvert : appel direct depuis le client, aucune clé requise.
+// Autocomplétion d'adresse via le BFF (/api/adresses), same-origin.
 
 export interface AdresseSuggestion {
   label: string; // libellé complet ("12 Rue X, 13360 Roquevaire")
@@ -10,18 +8,6 @@ export interface AdresseSuggestion {
   insee: string; // code INSEE (citycode)
 }
 
-interface BanFeature {
-  properties: {
-    label: string;
-    name: string;
-    city: string;
-    postcode: string;
-    citycode: string;
-  };
-}
-
-const ENDPOINT = "https://api-adresse.data.gouv.fr/search/";
-
 export async function searchAdresse(
   query: string,
   fetchImpl: typeof fetch = fetch,
@@ -29,15 +15,9 @@ export async function searchAdresse(
 ): Promise<AdresseSuggestion[]> {
   const q = query.trim();
   if (q.length < 3) return [];
-  const url = `${ENDPOINT}?q=${encodeURIComponent(q)}&limit=6&autocomplete=1`;
+  const url = `/api/adresses?q=${encodeURIComponent(q)}`;
   const res = await fetchImpl(url, { signal });
-  if (!res.ok) throw new Error("BAN_UPSTREAM");
-  const body = (await res.json()) as { features?: BanFeature[] };
-  return (body.features ?? []).map((f) => ({
-    label: f.properties.label,
-    name: f.properties.name,
-    commune: f.properties.city,
-    codePostal: f.properties.postcode,
-    insee: f.properties.citycode,
-  }));
+  if (!res.ok) return [];
+  const body = (await res.json()) as { data?: AdresseSuggestion[] };
+  return body.data ?? [];
 }

@@ -3,7 +3,6 @@ import {
   LaSuiteTranslationsProvider,
   frTranslations,
 } from "@gouvfr-lasuite/integration";
-import { LaGaufreV2 } from "@gouvfr-lasuite/ui-kit";
 import { Button } from "@gouvfr-lasuite/cunningham-react";
 import IakaLogo from "./IakaLogo";
 
@@ -22,22 +21,7 @@ export default function HomePage({ onEnter }: { onEnter: () => void }) {
         logo={<IakaLogo />}
         tagline="**1ère phase**, bilan intermédiaire"
         homepageUrl="/"
-        headerOptions={{
-          actions: (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                width: "100%",
-              }}
-            >
-              <LaGaufreV2
-                apiUrl="https://lasuite.numerique.gouv.fr/api/services"
-                widgetPath="https://static.suite.anct.gouv.fr/widgets/lagaufre.js"
-              />
-            </div>
-          ),
-        }}
+        headerOptions={{}}
         footerOptions={{
           a11yLevel: "non compliant",
           links: [],

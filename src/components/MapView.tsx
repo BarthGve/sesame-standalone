@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
-import { ignStyle } from "../lib/mapStyle";
+import { basemapStyle } from "../lib/mapStyle";
+import { fetchRuntimeConfig } from "../lib/runtimeConfig";
 import { computeBounds, listLayers, splitByLayer, colorForLayer, markerPoints } from "../lib/geo";
 import { visibleLayers, type Show } from "../features/carte/carteStore";
 import type { FeatureCollection, Feature } from "../lib/geo";
@@ -26,6 +27,7 @@ export default function MapView({ data, show }: { data: FeatureCollection | null
   const known = useRef<Set<string>>(new Set());     // ids de couches déjà ajoutés
   const handlers = useRef<Map<string, { layer: string; click: any; enter: any; leave: any }>>(new Map());
   const showRef = useRef<Show>({});
+  const [mapReady, setMapReady] = useState(false);
   showRef.current = data ? visibleLayers(data, show ?? {}) : {};
 
   const applyVisibility = (m: maplibregl.Map) => {
@@ -40,18 +42,35 @@ export default function MapView({ data, show }: { data: FeatureCollection | null
 
   useEffect(() => {
     if (!container.current) return;
-    if (!map.current) {
-      map.current = new maplibregl.Map({ container: container.current, style: ignStyle(), center: [2.4, 46.6], zoom: 5 });
-      map.current.addControl(new maplibregl.NavigationControl(), "top-right");
-    }
+    let cancelled = false;
+    const el = container.current;
     const ro = new ResizeObserver(() => map.current?.resize());
-    ro.observe(container.current);
-    return () => ro.disconnect();
+    ro.observe(el);
+
+    (async () => {
+      const cfg = await fetchRuntimeConfig();
+      if (cancelled || !el) return;
+      if (!map.current) {
+        map.current = new maplibregl.Map({
+          container: el,
+          style: basemapStyle(cfg.tilesUrl),
+          center: [2.4, 46.6],
+          zoom: 5,
+        });
+        map.current.addControl(new maplibregl.NavigationControl(), "top-right");
+      }
+      setMapReady(true);
+    })();
+
+    return () => {
+      cancelled = true;
+      ro.disconnect();
+    };
   }, []);
 
   useEffect(() => {
     const m = map.current;
-    if (!m || !data) return;
+    if (!m || !data || !mapReady) return;
 
     const apply = () => {
       const ids = listLayers(data);
@@ -148,9 +167,9 @@ export default function MapView({ data, show }: { data: FeatureCollection | null
 
     if (m.isStyleLoaded()) apply();
     else m.once("load", apply);
-  }, [data]);
+  }, [data, mapReady]);
 
-  useEffect(() => { const m = map.current; if (m) applyVisibility(m); }, [show, data]);
+  useEffect(() => { const m = map.current; if (m && mapReady) applyVisibility(m); }, [show, data, mapReady]);
 
   return <div ref={container} style={{ flex: 1, minHeight: 0 }} />;
 }
