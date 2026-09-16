@@ -17,6 +17,7 @@ import { normalizeResult } from "./rgpResult.mjs";
 import { extractSynthese } from "./rens.mjs";
 import { listerUnasEvaluables } from "./unasEvaluables.mjs";
 import { runEvaluation } from "./evaluationWorkflow.mjs";
+import { loadCfg } from "./config.mjs";
 import {
   ERROR_STATUS,
   readBody,
@@ -704,61 +705,9 @@ function contentTypeFor(path) {
 
 // Démarrage direct : node --env-file=.env server/proxy.mjs
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const cfg = {
-    baseUrl: process.env.IAKA_BASE_URL,
-    jwt: process.env.IAKA_JWT,
-    // Deux workflows IAka distincts cohabitent, chacun son app_id :
-    appId: process.env.IAKA_CARTE_APP_ID || process.env.IAKA_APP_ID, // carte BDSP (/api/query)
-    identifyAppId: process.env.IAKA_IDENTIFY_APP_ID, // saisies (/api/identify)
-    rgpAppId: process.env.IAKA_RGP_APP_ID,
-    syntheseAppId: process.env.IAKA_SYNTHESE_APP_ID, // synthèse d'actes (/api/synthese)
-    evaluationAppId: process.env.IAKA_EVALUATION_APP_ID, // évaluation des avoirs (/api/evaluation)
-    pvtcmpAppId: process.env.IAKA_PVTCMP_APP_ID, // PV transport (/api/pvtcmp)
-    arianeExtractionAppId: process.env.IAKA_ARIANE_EXTRACTION_APP_ID, // Ariane MAP
-    arianeConsolidationAppId: process.env.IAKA_ARIANE_CONSOLIDATION_APP_ID, // Ariane REDUCE
-    mapConcurrency: Number(process.env.ARIANE_MAP_CONCURRENCY ?? 4),
-    // RAG Ariane — le corpus est PURGÉ à chaque analyse : le dédier à la démo.
-    // Sans IAKA_RAG_CORPUS_ID, le RAG est entièrement désactivé (purge comprise).
-    // Le REST RAG (purge, ingestion) vit sur IAKA_BASE_URL ; le chat a son propre hôte.
-    ragBaseUrl: process.env.IAKA_RAG_BASE_URL,
-    ragCorpusId: process.env.IAKA_RAG_CORPUS_ID,
-    ragIakId: process.env.IAKA_RAG_IAK_ID,
-    ragModel: process.env.IAKA_RAG_MODEL,
-    ragMaxTokens: Number(process.env.IAKA_RAG_MAX_TOKENS ?? 28000),
-    imageField: process.env.IAKA_IMAGE_FIELD || "file",
-    syntheseFileField: process.env.IAKA_SYNTHESE_FILE_FIELD,
-    pvtcmpFileField: process.env.IAKA_PVTCMP_FILE_FIELD,
-    tenantId: process.env.IAKA_TENANT_ID,
-    pollIntervalMs: Number(process.env.POLL_INTERVAL_MS ?? 1500),
-    pollTimeoutMs: Number(process.env.POLL_TIMEOUT_MS ?? 60000),
-    cartePollTimeoutMs: Number(process.env.CARTE_POLL_TIMEOUT_MS ?? 480000),
-    cartePollIntervalMs: Number(process.env.CARTE_POLL_INTERVAL_MS ?? 4000),
-    rgpApiUrl: process.env.RGP_API_URL || "http://localhost:8080",
-    rgpApiToken: process.env.RGP_API_TOKEN,
-    // Pipeline RENS de /api/rens/synthese (SÉQUENTIEL) :
-    //   1) synthèse quotidienne (AUTONOME) → 2) zoom, qui prend la SORTIE de la synthèse
-    //   en entrée. Le zoom varie donc avec la synthèse (l'ancien prompt fixe donnait
-    //   toujours le même signal).
-    rensSyntheseAppId: process.env.IAKA_RENS_SYNTHESE_APP_ID, // 1 : synthèse quotidienne (autonome)
-    rensZoomAppId: process.env.IAKA_RENS_ZOOM_APP_ID,         // 2 : zoom (prompt = sortie de la synthèse)
-    rensApiUrl: process.env.RENS_API_URL || "http://localhost:8081",
-    qualiteAppId: process.env.IAKA_QUALITE_APP_ID,   // audit qualité GIPASP à la demande
-    rensApiToken: process.env.RENS_API_TOKEN,
-    // Plus d'identifiants MinIO côté BFF : les photos passent par rgp-api /photo
-    // (cfg.rgpApiUrl / cfg.rgpApiToken), seul service à parler à MinIO en interne.
-  };
-  cfg.staticDir = process.env.STATIC_DIR || null;
-  // Auth BFF optionnelle (defense-in-depth). Voir checkBffAccess / Claude.md.
-  cfg.bffApiToken = process.env.BFF_API_TOKEN || "";
-  cfg.requireCfAccess = process.env.BFF_REQUIRE_CF_ACCESS === "1";
+  const cfg = loadCfg(process.env);
   const port = Number(process.env.PROXY_PORT ?? 8787);
   createServer(createHandler({ cfg })).listen(port, () => {
     console.log(`proxy IAka sur http://localhost:${port}`);
-    if (!cfg.bffApiToken && !cfg.requireCfAccess) {
-      console.warn(
-        "BFF: aucune auth applicative (BFF_API_TOKEN / BFF_REQUIRE_CF_ACCESS). " +
-          "En prod, protéger l'origine via Cloudflare Access (ou activer un garde)."
-      );
-    }
   });
 }

@@ -63,22 +63,6 @@ test("checkBffAccess : BFF_API_TOKEN exige Bearer", () => {
   );
 });
 
-test("checkBffAccess : REQUIRE_CF_ACCESS exige l'en-tête CF", () => {
-  const cfg = { requireCfAccess: true };
-  assert.equal(
-    checkBffAccess({ headers: {} }, new URL("http://x/api/rens/fiches"), cfg),
-    "UNAUTHORIZED",
-  );
-  assert.equal(
-    checkBffAccess(
-      { headers: { "cf-access-jwt-assertion": "jwt…" } },
-      new URL("http://x/api/rens/fiches"),
-      cfg,
-    ),
-    null,
-  );
-});
-
 test("writeJson pose Content-Type application/json", () => {
   let code, headers, body;
   const res = {

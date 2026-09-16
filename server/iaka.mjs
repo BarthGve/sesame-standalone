@@ -1,9 +1,11 @@
 import { extractGeoJSON } from "./geojson.mjs";
+import { iakaReady } from "./config.mjs";
 
 const defaultSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Cœur : déclenche l'exécution d'un workflow IAka et poll jusqu'au result brut.
 async function execWorkflow({ prompt, appId, cfg, fetchImpl = globalThis.fetch, sleep = defaultSleep }) {
+  iakaReady(cfg);
   const headers = { Authorization: `Bearer ${cfg.jwt}`, "Content-Type": "application/json" };
   const execPath = cfg.executePath || "/workflows/execute";
   const statusTpl = cfg.statusPath || "/workflows/executions/{id}";

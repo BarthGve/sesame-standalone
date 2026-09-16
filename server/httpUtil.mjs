@@ -4,6 +4,7 @@
 export const ERROR_STATUS = {
   IAKA_TIMEOUT: 504,
   IAKA_UPSTREAM: 502,
+  IAKA_UNAVAILABLE: 503,
   GEOJSON_INVALID: 502,
   IDENTIFY_TIMEOUT: 504,
   IDENTIFY_UPSTREAM: 502,
@@ -83,26 +84,18 @@ export function logRequest(req, url) {
 }
 
 /**
- * Auth applicative optionnelle du BFF.
+ * Auth applicative optionnelle du BFF (standalone air-gap).
  *
  * Modèle de confiance :
- * - Prod : Cloudflare Access protège l'origine (SPA + /api). Pas de Bearer dans le
- *   navigateur (token embarqué = secret public).
- * - Defense-in-depth : si BFF_API_TOKEN est défini, TOUTES les routes /api/* exigent
- *   `Authorization: Bearer <token>` (utile pour appels machine-to-machine / tests).
+ * - Pas d'auth UI : le front appelle /api sans Bearer.
+ * - Si BFF_API_TOKEN est défini, TOUTES les routes /api/* exigent
+ *   `Authorization: Bearer <token>` (machine-to-machine / tests).
  *   /health et le static restent publics.
- * - Si BFF_REQUIRE_CF_ACCESS=1, les /api/* exigent l'en-tête Cloudflare Access
- *   `Cf-Access-Jwt-Assertion` (posé par le proxy ; on ne vérifie pas la signature
- *   ici — la validation crypto est faite par Cloudflare avant d'atteindre le BFF).
  *
  * @returns {string|null} code d'erreur (UNAUTHORIZED) ou null si OK
  */
 export function checkBffAccess(req, url, cfg = {}) {
   if (!url.pathname.startsWith("/api/")) return null;
-
-  if (cfg.requireCfAccess) {
-    if (!req.headers?.["cf-access-jwt-assertion"]) return "UNAUTHORIZED";
-  }
 
   const token = cfg.bffApiToken || "";
   if (token) {

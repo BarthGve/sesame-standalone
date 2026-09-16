@@ -82,3 +82,26 @@ test("runWorkflowRaw renvoie le result brut et envoie l'app_id RGP", async () =>
   assert.equal(execBody.app_id, "app");
   assert.equal(execBody.prompt, "liste");
 });
+
+test("cfg sans baseUrl lève IAKA_UNAVAILABLE avant tout fetch", async () => {
+  let called = 0;
+  const fetchImpl = async () => { called++; return { ok: true, json: async () => ({}) }; };
+  await assert.rejects(
+    runWorkflow({ question: "q", cfg: { jwt: "j", tenantId: "t", appId: "a", pollTimeoutMs: 10, pollIntervalMs: 1 }, fetchImpl, sleep: noSleep }),
+    /IAKA_UNAVAILABLE/
+  );
+  assert.equal(called, 0);
+});
+
+test("executePath / statusPath custom sont utilisés", async () => {
+  const urls = [];
+  const cfg = { baseUrl: "http://iaka", jwt: "j", tenantId: "t", appId: "a", executePath: "/v2/run", statusPath: "/v2/jobs/{id}", pollIntervalMs: 0, pollTimeoutMs: 100 };
+  const fetchImpl = async (url) => {
+    urls.push(url);
+    if (url.includes("/v2/run")) return { ok: true, json: async () => ({ execution_id: "e1" }) };
+    return { ok: true, json: async () => ({ status: "SUCCESS", result: JSON.stringify(fc) }) };
+  };
+  await runWorkflow({ question: "q", cfg, fetchImpl, sleep: noSleep });
+  assert.equal(urls[0], "http://iaka/v2/run");
+  assert.ok(urls[1].startsWith("http://iaka/v2/jobs/e1"));
+});
