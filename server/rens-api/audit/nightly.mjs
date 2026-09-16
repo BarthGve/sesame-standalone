@@ -128,7 +128,16 @@ export async function auditerJour({ client, jour, cfg, deps = {} }) {
   return { statut, totalFiches: fiches.length, fragments: fragments.length, ecarts: totalEcarts, rejets: totalRejets, ecartesRegle: totalRegle };
 }
 
+/** Opt-in : un `docker exec … nightly.mjs` sans AUDIT_NIGHTLY=1 sort sans appeler IAKA. */
+export function shouldRunNightly(env) {
+  return env.AUDIT_NIGHTLY === '1';
+}
+
 async function main() {
+  if (!shouldRunNightly(process.env)) {
+    console.log('[audit] AUDIT_NIGHTLY!=1 — noop (set AUDIT_NIGHTLY=1 to run)');
+    return;
+  }
   // `pg` est importé ICI, pas au chargement du module : les tests d'auditerJour injectent
   // un faux client et tournent hors du conteneur, où la dépendance n'est pas installée.
   const { Pool } = await import('pg');
@@ -139,6 +148,8 @@ async function main() {
     baseUrl: process.env.IAKA_BASE_URL,
     jwt: process.env.IAKA_JWT,
     tenantId: process.env.IAKA_TENANT_ID,
+    executePath: process.env.IAKA_EXECUTE_PATH || '/workflows/execute',
+    statusPath: process.env.IAKA_STATUS_PATH || '/workflows/executions/{id}',
     tailleFragment: Number(process.env.AUDIT_TAILLE_FRAGMENT ?? TAILLE_DEFAUT),
     concurrence: Number(process.env.AUDIT_CONCURRENCE ?? 6),
     pollIntervalMs: Number(process.env.AUDIT_POLL_MS ?? 2000),

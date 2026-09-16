@@ -1,7 +1,8 @@
-// Client IAka minimal pour le job d'audit : POST /workflows/execute puis poll de
-// /workflows/executions/{id} jusqu'à SUCCESS. Volontairement dupliqué depuis le BFF
-// (server/iaka.mjs) : rens-api est une image Docker distincte, partager un module
-// entre deux contextes de build coûterait plus que ces 40 lignes.
+// Client IAka minimal pour le job d'audit : POST cfg.executePath (défaut
+// /workflows/execute) puis poll de cfg.statusPath (défaut /workflows/executions/{id})
+// jusqu'à SUCCESS. Volontairement dupliqué depuis le BFF (server/iaka.mjs) : rens-api
+// est une image Docker distincte, partager un module entre deux contextes de build
+// coûterait plus que ces 40 lignes.
 
 const defaultSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -14,8 +15,10 @@ async function upstream(res, etape, appId) {
 
 export async function execWorkflow({ prompt, appId, cfg, fetchImpl = globalThis.fetch, sleep = defaultSleep }) {
   const headers = { Authorization: `Bearer ${cfg.jwt}`, 'Content-Type': 'application/json' };
+  const execPath = cfg.executePath || '/workflows/execute';
+  const statusTpl = cfg.statusPath || '/workflows/executions/{id}';
 
-  const execRes = await fetchImpl(`${cfg.baseUrl}/workflows/execute`, {
+  const execRes = await fetchImpl(`${cfg.baseUrl}${execPath}`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ app_id: appId, tenant_id: cfg.tenantId, prompt, langue: 'fr', include_traitement: false }),
@@ -26,7 +29,7 @@ export async function execWorkflow({ prompt, appId, cfg, fetchImpl = globalThis.
   const { execution_id: id } = await execRes.json();
   if (!id) throw new Error('IAKA_UPSTREAM');
 
-  const statusUrl = `${cfg.baseUrl}/workflows/executions/${id}?tenant_id=${cfg.tenantId}`;
+  const statusUrl = `${cfg.baseUrl}${statusTpl.replace('{id}', id)}?tenant_id=${cfg.tenantId}`;
   const debut = Date.now();
   while (Date.now() - debut <= cfg.pollTimeoutMs) {
     const res = await fetchImpl(statusUrl, { method: 'GET', headers });

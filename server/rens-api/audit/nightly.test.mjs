@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { auditerJour } from './nightly.mjs';
+import { auditerJour, shouldRunNightly } from './nightly.mjs';
+
+test('shouldRunNightly : uniquement AUDIT_NIGHTLY=1', () => {
+  assert.equal(shouldRunNightly({}), false);
+  assert.equal(shouldRunNightly({ AUDIT_NIGHTLY: '0' }), false);
+  assert.equal(shouldRunNightly({ AUDIT_NIGHTLY: '1' }), true);
+  assert.equal(shouldRunNightly({ AUDIT_NIGHTLY: 'true' }), false);
+});
 
 const fiches = (n) => Array.from({ length: n }, (_, i) => ({
   id: i + 1, date_redaction: '2026-08-04', titre: 'T', unite: 'COB X', code_ggd: 'GGD 49',

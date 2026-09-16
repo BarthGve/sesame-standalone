@@ -33,6 +33,23 @@ test('HTTP non ok au déclenchement → IAKA_UPSTREAM', async () => {
   await assert.rejects(() => execWorkflow({ prompt: 'p', appId: 'A', cfg, fetchImpl, sleep: async () => {} }), /IAKA_UPSTREAM/);
 });
 
+test('executePath / statusPath custom sont utilisés', async () => {
+  const urls = [];
+  const custom = {
+    ...cfg,
+    executePath: '/v2/run',
+    statusPath: '/v2/jobs/{id}',
+  };
+  const fetchImpl = async (url, opt) => {
+    urls.push(url);
+    if (opt?.method === 'POST') return rep({ execution_id: 'E1' });
+    return rep({ status: 'SUCCESS', result: '[]' });
+  };
+  await execWorkflow({ prompt: 'p', appId: 'A', cfg: custom, fetchImpl, sleep: async () => {} });
+  assert.equal(urls[0], 'https://iaka.test/v2/run');
+  assert.ok(urls[1].startsWith('https://iaka.test/v2/jobs/E1'));
+});
+
 test('mapConcurrent : respecte la limite et conserve l\'ordre des résultats', async () => {
   let enCours = 0, max = 0;
   const fn = async (n) => {
