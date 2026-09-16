@@ -82,8 +82,8 @@ Ne pas laisser `AUDIT_NIGHTLY=1` en permanent sur une install de démo sans
 | Variable | Notes install |
 |---|---|
 | `IAKA_BASE_URL` | Placeholder `http://iaka:8080` — hostname à faire résoudre par le BFF |
-| `IAKA_JWT` / `IAKA_TENANT_ID` | Vides = `IAKA_UNAVAILABLE` ; valeurs hors git |
-| `IAKA_*_APP_ID` | Tous vides ; un vide = workflow flag `false`, pas d’appel |
+| `IAKA_JWT` / `IAKA_TENANT_ID` | Hors git. Vides : `IAKA_UNAVAILABLE` seulement pour carte/RGP/RENS (`iakaReady`) ; identify/analyse/PV/éval/Ariane → `*_UPSTREAM` |
+| `IAKA_*_APP_ID` | Tous vides ; flag `workflows.*` false dans `/api/config` — l’UI n’en bloque pas l’appel (sauf RAG Ariane) |
 | `IAKA_RAG_*` | Corpus vide = RAG off |
 | `RGP_API_TOKEN` / `RENS_API_TOKEN` | Doivent matcher `API_TOKEN=changeme` du compose |
 | `POLL_*` / `CARTE_POLL_*` | Timeouts de poll IAKA |

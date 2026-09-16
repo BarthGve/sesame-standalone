@@ -24,7 +24,8 @@ Valeurs à **aligner** (placeholders LAN, pas des secrets de production) :
 | `.env` | `RGP_API_TOKEN` | `changeme` |
 | `.env` | `RENS_API_TOKEN` | `changeme` |
 
-Laisser vides pour l’instant (démarrage OK, pages agent en « non configuré ») :
+Laisser vides pour l’instant (le BFF démarre ; un clic agent appellera IAKA
+avec un `app_id` vide → `IAKA_UPSTREAM` / 422, pas une bannière « non configuré ») :
 
 - tous les `IAKA_*_APP_ID`
 - `IAKA_JWT`, `IAKA_TENANT_ID` si IAKA n’est pas encore prête
@@ -112,9 +113,13 @@ curl -s localhost/api/ready
 Ouvrir `http://<serveur>/` dans le navigateur LAN : page d’accueil, bouton
 **Entrer** → `/app/accueil`. Pas d’écran de login.
 
-## 4. Seeds automatiques
+## 4. Seeds (RGP auto au boot, FRS manuel)
 
-### RGP (automatique)
+Le premier `up` **ne** peuple **pas** les FRS tout seul. Attendre le seed
+automatique FRS est une erreur : rens-api écoute via `node server.js`, sans
+migrate/seed au démarrage.
+
+### RGP (automatique au boot du conteneur)
 
 Le conteneur `rgp-api` démarre via `node start.js` :
 
@@ -131,15 +136,19 @@ Jeu minimal fictif :
 
 Les pages Perquisitions / RGP / Évaluation voient cette UNA sans dump.
 
-### FRS / rens-api (seed dans l’image)
+### FRS / rens-api (manuel, pas au boot)
 
-Les migrations (`/app/migrations/*.sql`) et le seed
-(`/app/seed/frs_seed.sql`, ~6 300 fiches de démonstration, identités fictives)
-sont **embarqués** dans l’image `rens-api`. Au premier `up`, les appliquer
-une fois depuis l’hôte (Postgres doit être healthy) :
+Les migrations `001`…`012` (`*.sql` seulement) et le seed
+(`frs_seed.sql`, ~6 300 fiches de démonstration, identités fictives) sont
+dans git **et** copiés dans l’image `rens-api` (`/app/migrations`,
+`/app/seed`). Le conteneur **ne les applique pas** au start.
+
+**Préférer un checkout source** sur la machine d’install (même air-gap : le
+working tree voyage avec les images, voir [Build hors ligne](Build-hors-ligne.md)).
+Postgres healthy, **une fois** :
 
 ```bash
-# Migrations (ordre lexicographique 001 … 012)
+# Migrations (ordre lexicographique 001 … 012 — ignorer les *.test.mjs)
 for f in server/rens-api/migrations/*.sql; do
   docker compose exec -T postgres psql -U sesame -d rens -v ON_ERROR_STOP=1 -f - < "$f"
 done
@@ -152,16 +161,24 @@ docker compose exec -T postgres psql -U sesame -d rens -v ON_ERROR_STOP=1 -f - \
 docker compose exec rens-api node /app/seed/load-referentiels.mjs
 ```
 
-Sans dépôt sur l’hôte (images seules), lire les fichiers **depuis le
-conteneur** :
+**Images seules** (pas d’arbre source sur l’hôte) : extraire SQL **depuis le
+conteneur** puis appliquer **migrations 001–012 et le seed** — le seed sans
+schéma échoue.
 
 ```bash
-docker compose exec rens-api sh -c 'ls /app/migrations/*.sql | sort'
-docker compose exec rens-api cat /app/seed/frs_seed.sql \
-  | docker compose exec -T postgres psql -U sesame -d rens -v ON_ERROR_STOP=1
+tmp=$(mktemp -d)
+docker compose cp rens-api:/app/migrations "$tmp/migrations"
+docker compose cp rens-api:/app/seed/frs_seed.sql "$tmp/frs_seed.sql"
+for f in "$tmp/migrations"/*.sql; do
+  docker compose exec -T postgres psql -U sesame -d rens -v ON_ERROR_STOP=1 -f - < "$f"
+done
+docker compose exec -T postgres psql -U sesame -d rens -v ON_ERROR_STOP=1 -f - \
+  < "$tmp/frs_seed.sql"
+docker compose exec rens-api node /app/seed/load-referentiels.mjs
 ```
 
-Les pages `/app/frs` (flux) ne sont alors plus vides. Relancer le seed est
+Sans checkout **et** sans cette extraction : pas de FRS au premier boot.
+Les pages `/app/frs` (flux) restent vides, sans crash. Relancer le seed est
 sûr seulement sur une base `rens` neuve (INSERT non idempotents).
 
 ### Cote

@@ -34,12 +34,15 @@ Les API internes, Postgres et MinIO ne sont pas publiés sur le LAN
         ▼
 [ BFF : SPA statique + /api/* ]     ← seul ingress (80 → 8787)
         ├── IAKA (externe)          IAKA_BASE_URL + JWT + tenant + app_id
-        ├── rgp-api (interne)       :8080  Postgres rgp + MinIO
-        ├── rens-api (interne)      :8080  Postgres rens
-        └── cote-api (interne)      :8082  catalogue simulé
-              │
-              ├── postgres          rgp, rens, bdsp (PostGIS)
-              └── minio             bucket perquisitions
+        ├── rgp-api (interne)       :8080
+        ├── rens-api (interne)      :8080
+        └── cote-api (interne)      :8082
+
+Réseau Docker interne (non publié sur le LAN, hors profil debug) :
+  postgres  — bases rgp, rens, bdsp (PostGIS)
+  minio     — bucket perquisitions
+  rgp-api → postgres (rgp) + minio
+  rens-api → postgres (rens)
 ```
 
 IAKA parle ensuite aux MCP HTTP (`rgp-api`, `rens-api`, `cote-api`) et à

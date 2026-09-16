@@ -19,16 +19,14 @@ La base `bdsp` est créée vide au init Postgres, avec PostGIS + `unaccent`
 (`infra/postgres/init/03-bdsp.sh`). Le dump (format custom `.fc` typiquement)
 se restaure **dans** `bdsp`.
 
-Publier Postgres sur l’hôte le temps de l’import :
+Publier Postgres sur l’hôte (`5432`) le temps de l’import, puis restaurer
+**avec hôte et utilisateur** (un `pg_restore -d bdsp dump.fc` seul vise le
+socket local et échoue) :
 
 ```bash
 docker compose --profile debug up -d
-```
-
-Puis, depuis la machine qui a le fichier `dump.fc` :
-
-```bash
-pg_restore -d bdsp dump.fc
+export PGPASSWORD=sesame-local-dev   # placeholder compose, pas un secret prod
+pg_restore -h 127.0.0.1 -p 5432 -U sesame -d bdsp dump.fc
 ```
 
 Variante tout-Docker (pas de client `pg_restore` sur l’hôte) :
@@ -38,12 +36,6 @@ docker compose --profile debug up -d
 docker compose exec -T postgres pg_restore -U sesame -d bdsp --no-owner --no-acl \
   < dump.fc
 ```
-
-Hôte / user / mot de passe si `pg_restore` tourne sur l’hôte :
-
-- host `127.0.0.1`, port `5432`
-- user `sesame`, base `bdsp`
-- mot de passe placeholder compose : `sesame-local-dev`
 
 Après restore, accorder la lecture au rôle MCP IAKA :
 

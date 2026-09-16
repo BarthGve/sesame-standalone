@@ -31,11 +31,21 @@ Lister ce que Compose utilisera :
 docker compose config --images
 ```
 
-## Sur la machine de build
+## Sur la machine de build (réseau encore disponible)
 
-Depuis la racine du dépôt :
+`docker compose build` ne tire **pas** PostGIS / MinIO / mc. Un
+`docker save $(docker compose config --images)` **sans** ces couches déjà
+locales omet (ou échoue sur) `postgis/postgis:16-3.5`,
+`minio/minio:RELEASE.2024-12-18T13-15-44Z`,
+`minio/mc:RELEASE.2024-11-17T19-35-38Z`.
+
+Depuis la racine du dépôt, **d’abord pull** les images amont, **puis** build,
+**puis** save :
 
 ```bash
+docker compose pull
+docker pull node:20-alpine
+docker compose --profile debug pull   # alpine:3.20 si le sidecar 5432 doit voyager
 docker compose build
 docker compose save -o sesame-images.tar   # si compose save indispo :
 docker save -o sesame-images.tar $(docker compose config --images)
@@ -44,8 +54,9 @@ docker load -i sesame-images.tar
 ```
 
 `docker compose save` n’existe pas sur toutes les versions du plugin Compose :
-si la commande échoue, utiliser le `docker save` ci-dessus (il embarque aussi
-les images amont listées par `config --images`).
+si la commande échoue, utiliser le `docker save` ci-dessus **après** le pull
+(il n’embarque que les images **déjà présentes** localement, y compris celles
+listées par `config --images`).
 
 Vérifier l’archive avant de copier :
 
@@ -88,6 +99,7 @@ Sans ces couches de base, le build échoue (pas de registre).
 Reconstruire **uniquement** les services touchés, ré-exporter, recharger :
 
 ```bash
+docker compose pull
 docker compose build bff rgp-api
 docker save -o sesame-images.tar $(docker compose config --images)
 # USB → serveur

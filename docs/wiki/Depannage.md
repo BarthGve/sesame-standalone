@@ -26,8 +26,24 @@ les appels échoueront.
 
 ## `IAKA_UNAVAILABLE` (503)
 
-Levée **avant** tout fetch si `IAKA_BASE_URL`, `IAKA_JWT` ou `IAKA_TENANT_ID`
-manque (chaîne vide). Même code si la garde `iakaReady` est hit.
+**Pas universel.** La garde `iakaReady()` n’existe que dans `server/iaka.mjs`
+(`execWorkflow`). Elle lève `IAKA_UNAVAILABLE` **avant** tout fetch si
+`IAKA_BASE_URL`, `IAKA_JWT` ou `IAKA_TENANT_ID` est vide.
+
+Pages concernées (passent par `iaka.mjs`) :
+
+- `/app/carte`, `/app/rgp`
+- FRS synthèse / zoom, qualité à la demande (via `runRensWorkflow`)
+
+Pages **sans** cette garde — l’appel part, codes `*_UPSTREAM` :
+
+| Page | Code typique |
+|---|---|
+| `/app/saisies` identify photo | `IDENTIFY_UPSTREAM` |
+| `/app/analyse` | `SYNTHESE_UPSTREAM` |
+| `/app/pv-transport` | `PVTCMP_UPSTREAM` |
+| `/app/evaluation` | `EVALUATION_UPSTREAM` |
+| `/app/ariane` | `ARIANE_UPSTREAM` |
 
 Actions :
 
@@ -36,9 +52,11 @@ Actions :
 - **Ne pas mettre de JWT dans le wiki** : coller le jeton dans `.env` puis
   `docker compose up -d bff --force-recreate`.
 
-Un `app_id` vide ne doit **pas** déclencher d’appel : flag workflow `false`,
-page « non configuré ». Si un appel part quand même avec un `app_id` vide,
-IAKA répondra souvent 422 / `IAKA_UPSTREAM`.
+Un `app_id` vide ne masque **pas** l’écran : le flag `workflows.*` de
+`/api/config` est `false`, mais le front appelle quand même le BFF. IAKA
+répond alors souvent 422 / `IAKA_UPSTREAM` (ou l’équivalent métier ci-dessus).
+Seul Ariane RAG a un message dédié (« corpus non configuré ») si
+`IAKA_RAG_CORPUS_ID` est vide.
 
 ## `IAKA_UPSTREAM` (502)
 

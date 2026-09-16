@@ -4,9 +4,15 @@ Routes **réelles** (`src/App.tsx`). Toute autre URL sous `/app/*` redirige
 vers `/app/accueil`. L’auth UI n’existe pas : qui atteint le port 80 voit
 toutes les pages.
 
-Un `app_id` vide → flag `workflows.*` à `false`, **pas d’appel IAKA**, page
-« non configuré ». IAKA down ou mal câblée → `IAKA_UNAVAILABLE` /
-`IAKA_UPSTREAM` (messages déjà prévus dans l’UI).
+Un `app_id` vide met le flag `workflows.*` de `GET /api/config` à `false`.
+Le front **n’utilise pas** ces flags pour masquer les pages (`fetchRuntimeConfig`
+sert surtout aux tuiles dans `MapView`). Lancer un traitement avec un `app_id`
+vide **appelle quand même IAKA** : attendre `IAKA_UPSTREAM` / 422 (ou
+`IDENTIFY_UPSTREAM`, `SYNTHESE_UPSTREAM`, `PVTCMP_UPSTREAM`,
+`EVALUATION_UPSTREAM`, `ARIANE_UPSTREAM` selon la page). Seul l’onglet
+Questions d’Ariane a un message dédié si le corpus RAG est vide
+(« corpus non configuré »). Il n’y a **pas** de bannière « page non configuré »
+sur les autres écrans.
 
 ## `/` — landing
 
@@ -25,9 +31,10 @@ Question en langage naturel → workflow IAKA (`IAKA_CARTE_APP_ID`) → GeoJSON
 affiché sur MapLibre. Fond : tuiles same-origin `/api/tiles/{z}/{x}/{y}` si
 `MAP_TILES_URL` est posé, sinon fond neutre.
 
-- Job asynchrone BFF (jusqu’à ~8 min de poll carte).
+- Job asynchrone BFF (`jobs.mjs`, jusqu’à ~8 min de poll carte).
 - Dump `bdsp` absent : exécution possible, couches vides (« Aucun point »).
-- Clic objet : identify (`IAKA_IDENTIFY_APP_ID`) si configuré.
+- Clic objet : popup des propriétés GeoJSON uniquement — **pas** d’identify.
+  L’identification photo (`IAKA_IDENTIFY_APP_ID`) est sur `/app/saisies`.
 
 ## `/app/saisies` — Perquisitions
 
@@ -111,6 +118,10 @@ Pastille de statut (en cours / ok / erreur) sur les pages à job long.
 
 ## Jobs
 
-Les traitements longs (carte, analyse, PV, évaluation, FRS synthèse, Ariane)
-passent par le store **mémoire** du BFF (`jobs.mjs`). Un redémarrage BFF
-annule les jobs en vol — l’UI affichera `JOB_INCONNU`.
+Les traitements longs vivent **en mémoire** dans le process BFF. Un
+redémarrage `bff` les perd (`JOB_INCONNU` côté UI).
+
+- Carte, analyse, PV, évaluation, FRS synthèse, identify : `server/jobs.mjs`
+  (TTL 30 min, plafond 500).
+- Ariane : store **séparé** `server/ariane.mjs` (même idée TTL / plafond,
+  pas `jobs.mjs`).
