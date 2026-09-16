@@ -10,8 +10,9 @@ import { createHandler } from "./proxy.mjs";
 const cfg = { pollIntervalMs: 0, pollTimeoutMs: 100 };
 const fc = { type: "FeatureCollection", features: [] };
 
-async function withServer(run, fn) {
-  const server = createServer(createHandler({ cfg, run }));
+async function withServer(run, fn, opts = {}) {
+  const handlerCfg = { ...cfg, ...(opts.cfg || {}) };
+  const server = createServer(createHandler({ cfg: handlerCfg, run, fetchImpl: opts.fetchImpl }));
   await new Promise((r) => server.listen(0, r));
   const port = server.address().port;
   try {
@@ -845,6 +846,37 @@ test("GET /health → 200 { data: { ok: true } } sans auth", async () => {
   const res = await appelJson(handler, "GET", "/health");
   assert.equal(res.code, 200);
   assert.deepEqual(res.body, { data: { ok: true } });
+});
+
+test("GET /api/config n'expose pas le JWT", async () => {
+  const handlerCfg = { jwt: "secret-jwt", baseUrl: "http://iaka", tenantId: "t", appId: "abc", mapTilesUrl: "", banApiUrl: "" };
+  await withServer(async () => fc, async (port) => {
+    const res = await fetch(`http://localhost:${port}/api/config`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    const s = JSON.stringify(body);
+    assert.equal(body.data.workflows.carte, true);
+    assert.ok(!s.includes("secret-jwt"));
+    assert.ok(!s.includes("abc"));
+  }, { cfg: handlerCfg });
+});
+
+test("GET /api/ready : ok + flags, sans JWT ni app_id", async () => {
+  const handlerCfg = { jwt: "secret-jwt", baseUrl: "http://iaka", tenantId: "t", appId: "abc", mapTilesUrl: "", banApiUrl: "" };
+  const fetchImpl = async () => ({ ok: true, status: 200 });
+  await withServer(async () => fc, async (port) => {
+    const res = await fetch(`http://localhost:${port}/api/ready`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    const s = JSON.stringify(body);
+    assert.equal(body.data.ok, true);
+    assert.equal(body.data.iaka, true);
+    assert.equal(body.data.workflows.carte, true);
+    assert.equal(body.data.tiles, false);
+    assert.equal(body.data.ban, false);
+    assert.ok(!s.includes("secret-jwt"));
+    assert.ok(!s.includes("abc"));
+  }, { cfg: handlerCfg, fetchImpl });
 });
 
 test("BFF_API_TOKEN : /api sans Bearer → 401 ; health reste ouvert", async () => {

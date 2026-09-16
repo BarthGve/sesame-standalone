@@ -17,7 +17,8 @@ import { normalizeResult } from "./rgpResult.mjs";
 import { extractSynthese } from "./rens.mjs";
 import { listerUnasEvaluables } from "./unasEvaluables.mjs";
 import { runEvaluation } from "./evaluationWorkflow.mjs";
-import { loadCfg } from "./config.mjs";
+import { loadCfg, publicConfig } from "./config.mjs";
+import { probeIaka } from "./ready.mjs";
 import {
   ERROR_STATUS,
   readBody,
@@ -154,6 +155,16 @@ export function createHandler({ cfg, run = runWorkflow, runRaw = runWorkflowRaw,
         writeJson(res, ERROR_STATUS[denied] ?? 401, { error: denied });
         return;
       }
+    }
+    if (url.pathname === "/api/config" && req.method === "GET") {
+      return writeJson(res, 200, { data: publicConfig(cfg) });
+    }
+    if (url.pathname === "/api/ready" && req.method === "GET") {
+      const iaka = await probeIaka(cfg, fetchImpl);
+      const pub = publicConfig(cfg);
+      return writeJson(res, 200, {
+        data: { ok: true, iaka: iaka.reachable, workflows: pub.workflows, tiles: pub.tiles, ban: pub.ban, rag: pub.rag },
+      });
     }
     const rgpKey = `${req.method} ${url.pathname}`;
     if (rgpKey in RGP_ROUTES) {
