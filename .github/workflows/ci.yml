@@ -36,6 +36,10 @@ jobs:
         run: npm run test:rgp
       - name: Tests cote-api
         run: npm run test:cote
+      - name: Filet anti-cloud (air-gap)
+        run: sh scripts/check-airgap.sh
+      - name: docker compose config
+        run: docker compose config
 
   docker:
     runs-on: ubuntu-latest
